@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "216650364286",
+    "firebase_url": "https://multiversecomic-92599.firebaseio.com",
+    "project_id": "multiversecomic-92599",
+    "storage_bucket": "multiversecomic-92599.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:216650364286:android:9ea374b7b4d8dae1",
+        "android_client_info": {
+          "package_name": "com.korbkenny.multiversecomic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "216650364286-1epj3bbeimb6g4cgktpjsl322fngiuo1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.korbkenny.multiversecomic",
+            "certificate_hash": "C760A2C6268C9C47822AF8AD668155ADD190C000"
+          }
+        },
+        {
+          "client_id": "216650364286-tbu8jep6kt7mtn1qsqcgbu6s75t1bh91.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCH6XMvOHEUOT-wSNf0cOZXxtDEbkuPwmg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "216650364286-tbu8jep6kt7mtn1qsqcgbu6s75t1bh91.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

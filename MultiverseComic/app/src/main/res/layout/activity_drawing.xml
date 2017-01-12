@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_drawing"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.korbkenny.multiversecomic.Drawing.DrawingActivity">
+
+    <EditText
+        android:id="@+id/yellow_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/yellowbottomborder"/>
+
+    <com.korbkenny.multiversecomic.Drawing.DrawView
+        android:id="@+id/draw_view"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_below="@id/yellow_edit_text"/>
+
+    <SeekBar
+        android:id="@+id/seekbar_size_picker"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/draw_view"/>
+
+    <TextView
+        android:id="@+id/size_of_brush"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekbar_size_picker"
+        android:layout_marginLeft="70dp"
+        android:layout_marginTop="10dp"/>
+
+
+
+    <Button
+        android:id="@+id/undo_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="undo"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"/>
+
+</RelativeLayout>
