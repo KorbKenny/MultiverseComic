@@ -11,11 +11,14 @@ public class PathPaint {
     private Path mPath;
     private Paint mPaint;
     private float mBrushSize;
+    private int mPaintColor, mPaintAlpha;
 
-    public PathPaint(Path path, Paint paint, float brushSize) {
+    public PathPaint(Path path, Paint paint, float brushSize, int paintColor, int paintAlpha) {
         mPath = path;
         mPaint = paint;
         mBrushSize = brushSize;
+        mPaintColor = paintColor;
+        mPaintAlpha = paintAlpha;
     }
 
     public Path getPath() {
@@ -40,6 +43,22 @@ public class PathPaint {
 
     public void setBrushSize(float brushSize) {
         mBrushSize = brushSize;
+    }
+
+    public int getPaintColor() {
+        return mPaintColor;
+    }
+
+    public void setPaintColor(int paintColor) {
+        mPaintColor = paintColor;
+    }
+
+    public int getPaintAlpha() {
+        return mPaintAlpha;
+    }
+
+    public void setPaintAlpha(int paintAlpha) {
+        mPaintAlpha = paintAlpha;
     }
 }
 

@@ -7,6 +7,46 @@
     android:layout_height="match_parent"
     tools:context="com.korbkenny.multiversecomic.LoginActivity">
 
+    <RelativeLayout
+        android:id="@+id/sign_up_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp">
 
+        <EditText
+            android:id="@+id/sign_up_email"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:inputType="textEmailAddress"
+            android:hint="Email"/>
+        <EditText
+            android:id="@+id/sign_up_password"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sign_up_email"
+            android:layout_centerHorizontal="true"
+            android:inputType="textPassword"
+            android:hint="Password"/>
+        <Button
+            android:id="@+id/sign_up_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sign_up_password"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:text="sign up"
+            android:layout_alignParentRight="true"/>
+        <Button
+            android:id="@+id/log_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sign_up_password"
+            android:layout_toLeftOf="@id/sign_up_button"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:text="Log In"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>

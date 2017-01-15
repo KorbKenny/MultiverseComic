@@ -31,14 +31,24 @@ public class DrawView extends View{
     private List<PathPaint> mMoveList, mUndoList, mCurrentMoveList;
     private float mBrushSize, mLastBrushSize;
     private int mUndoCounter = 0;
+    private int  mPaintAlpha;
 
     public DrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setupDrawing();
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int width = getMeasuredWidth();
+        setMeasuredDimension(width,width);
+    }
+
     private void setupDrawing(){
         mBrushSize = 15;
+        mPaintAlpha = 255;
         mLastBrushSize = mBrushSize;
 
         mDrawPath = new Path();
@@ -52,6 +62,7 @@ public class DrawView extends View{
         mDrawPaint.setStyle(Paint.Style.STROKE);
         mDrawPaint.setStrokeJoin(Paint.Join.ROUND);
         mDrawPaint.setStrokeCap(Paint.Cap.ROUND);
+        mDrawPaint.setAlpha(mPaintAlpha);
 
         mCanvasPaint = new Paint(Paint.DITHER_FLAG);
     }
@@ -67,12 +78,16 @@ public class DrawView extends View{
     protected void onDraw(Canvas canvas) {
 //        canvas.drawBitmap(mCanvasBitmap,0,0,mCanvasPaint);
 //        canvas.drawPath(mDrawPath,mDrawPaint);
-        for(PathPaint pp:mCurrentMoveList){
-            mDrawPaint.setStrokeWidth(pp.getBrushSize());
-            canvas.drawPath(pp.getPath(),pp.getPaint());
-        }
         for(PathPaint pp:mMoveList){
             mDrawPaint.setStrokeWidth(pp.getBrushSize());
+            mDrawPaint.setColor(pp.getPaintColor());
+            mDrawPaint.setAlpha(pp.getPaintAlpha());
+            canvas.drawPath(pp.getPath(),pp.getPaint());
+        }
+        for(PathPaint pp:mCurrentMoveList){
+            mDrawPaint.setStrokeWidth(pp.getBrushSize());
+            mDrawPaint.setColor(pp.getPaintColor());
+            mDrawPaint.setAlpha(pp.getPaintAlpha());
             canvas.drawPath(pp.getPath(),pp.getPaint());
         }
     }
@@ -88,12 +103,12 @@ public class DrawView extends View{
                 break;
             case MotionEvent.ACTION_MOVE:
                 mDrawPath.lineTo(touchX, touchY);
-                mCurrentMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize));
+                mCurrentMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize,mPaintColor,mPaintAlpha));
                 break;
             case MotionEvent.ACTION_UP:
                 mUndoCounter = 0;
 //                mDrawCanvas.drawPath(mDrawPath, mDrawPaint);
-                mMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize));
+                mMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize,mPaintColor,mPaintAlpha));
                 mDrawPath = new Path();
                 mDrawPath.reset();
                 mCurrentMoveList.clear();
@@ -122,7 +137,6 @@ public class DrawView extends View{
     }
 
     public void setColor(String newColor){
-        invalidate();
         mPaintColor = Color.parseColor(newColor);
         mDrawPaint.setColor(mPaintColor);
     }
@@ -132,6 +146,11 @@ public class DrawView extends View{
                 newSize, getResources().getDisplayMetrics());
         mBrushSize = pixelAmount;
         mDrawPaint.setStrokeWidth(mBrushSize);
+    }
+
+    public void setOpacity(int newAlpha){
+        mPaintAlpha = Math.round((float)newAlpha/100*255);
+        mDrawPaint.setAlpha(mPaintAlpha);
     }
 
     public void setLastBrushSize(float lastSize){

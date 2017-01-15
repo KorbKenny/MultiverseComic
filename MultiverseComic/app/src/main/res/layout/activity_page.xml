@@ -51,7 +51,8 @@
         android:id="@+id/page_layout_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/my_toolbar">
+        android:layout_below="@id/my_toolbar"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/page_text"
@@ -66,7 +67,7 @@
             android:text="Okay, here's the deal. This is some test text, it's cool and stuff. Our hero goes to the bathroom and does more stuff."/>
 
 
-        <ImageView
+        <com.korbkenny.multiversecomic.SquareImageView
             android:id="@+id/page_image"
             android:layout_below="@id/page_text"
             android:layout_width="match_parent"
@@ -91,7 +92,8 @@
         android:id="@+id/page_layout_buttons"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/what_do_we_do">
+        android:layout_below="@id/what_do_we_do"
+        android:visibility="gone">
         <TextView
             android:id="@+id/button_left"
             android:layout_width="0dp"
@@ -116,7 +118,6 @@
             android:gravity="center"
             android:layout_gravity="center"
             android:background="#cceeff"
-            android:text="Another little tetst out things it'll be cool"
         />
     </LinearLayout>
 

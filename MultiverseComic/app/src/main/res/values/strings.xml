@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">MultiverseComic</string>
     <string name="already_working">Somebody is already working on this, at this very moment</string>
+    <string name="done_something_already">You\'ve already done enough on this page</string>
+    <string name="draw_picture_first">Someone should draw the picture first!</string>
     <string name="title_activity_drawing">DrawingActivity</string>
 </resources>
