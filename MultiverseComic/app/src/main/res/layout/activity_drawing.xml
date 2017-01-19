@@ -5,7 +5,7 @@
     android:id="@+id/activity_drawing"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.korbkenny.multiversecomic.Drawing.DrawingActivity">
+    tools:context="com.korbkenny.multiversecomic.drawing.DrawingActivity">
 
     <EditText
         android:id="@+id/yellow_edit_text"
@@ -16,7 +16,7 @@
         android:fontFamily="casual"
         android:background="@drawable/yellowbottomborder"/>
 
-    <com.korbkenny.multiversecomic.Drawing.DrawView
+    <com.korbkenny.multiversecomic.drawing.DrawView
         android:id="@+id/draw_view"
         android:layout_width="match_parent"
         android:layout_height="350dp"
@@ -110,7 +110,7 @@
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="Size: 12px"
+            android:text="Size: 8px"
             android:fontFamily="casual"/>
         <SeekBar
         android:id="@+id/seekbar_size_picker"

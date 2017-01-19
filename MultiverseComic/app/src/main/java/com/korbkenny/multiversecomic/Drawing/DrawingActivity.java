@@ -1,6 +1,5 @@
-package com.korbkenny.multiversecomic.Drawing;
+package com.korbkenny.multiversecomic.drawing;
 
-import android.app.Dialog;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -10,7 +9,6 @@ import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -37,7 +35,8 @@ public class DrawingActivity extends AppCompatActivity {
     private Button mUndoButton, mSaveButton;
     private FirebaseDatabase db;
     private DatabaseReference dPageRef;
-    private String iPageId, iUserId, mYellowText;
+    private StorageReference dStorageRef;
+    private String iPageId, iUserId, iGroupId, mYellowText, mFromUser, iFromPageId;
     private TextView mBrushSize, mOpacity, mLoadingBg;
     private ProgressBar mLoadingCircle;
     private ImageView mCurrentColor;
@@ -129,8 +128,12 @@ public class DrawingActivity extends AppCompatActivity {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         Uri image = Uri.fromFile(new File(path + "/" + FILE_NAME));
-                        StorageReference storageRef = FirebaseStorage.getInstance().getReference("Pages").child(iPageId).child(FILE_NAME);
-                        storageRef.putFile(image).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        if(iGroupId==null) {
+                            dStorageRef = FirebaseStorage.getInstance().getReference("Pages").child(iPageId).child(FILE_NAME);
+                        } else {
+                            dStorageRef = FirebaseStorage.getInstance().getReference("Groups").child(iGroupId).child(iPageId).child(FILE_NAME);
+                        }
+                        dStorageRef.putFile(image).addOnSuccessListener(DrawingActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
                                 new AsyncTask<Void, Void, Void>() {
@@ -143,7 +146,13 @@ public class DrawingActivity extends AppCompatActivity {
                                         if (taskSnapshot.getDownloadUrl() != null) {
                                             dPageRef.child("text").setValue(mYellowText);
                                             dPageRef.child("image").setValue(taskSnapshot.getDownloadUrl().toString());
-                                            dPageRef.child("user").setValue(iUserId);
+                                            if(iGroupId==null) {
+                                                dPageRef.child("user").setValue(iUserId);
+                                                DatabaseReference updatedPageRef = db.getReference("Users").child(mFromUser).child("pageUpdate");
+                                                updatedPageRef.setValue(iPageId);
+                                            } else {
+                                                dPageRef.child("imageUser").setValue(iUserId);
+                                            }
                                         }
                                         return null;
                                     }
@@ -198,7 +207,7 @@ public class DrawingActivity extends AppCompatActivity {
     private void changeSizeSeekbar() {
         SeekBar sizePicker = (SeekBar)findViewById(R.id.seekbar_size_picker);
         sizePicker.setMax(34);
-        sizePicker.setProgress(12);
+        sizePicker.setProgress(6);
         sizePicker.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -225,9 +234,17 @@ public class DrawingActivity extends AppCompatActivity {
     private void simpleSetup() {
         iPageId = getIntent().getStringExtra("PageId");
         iUserId = getIntent().getStringExtra("MyUserId");
+        iGroupId = getIntent().getStringExtra("GroupId");
+        iFromPageId = getIntent().getStringExtra("FromPageId");
+
+        mFromUser = getIntent().getStringExtra("FromUser");
 
         db = FirebaseDatabase.getInstance();
-        dPageRef = db.getReference("Global").child(iPageId);
+        if(iGroupId==null) {
+            dPageRef = db.getReference("Global").child(iPageId);
+        } else {
+            dPageRef = db.getReference("Groups").child(iGroupId).child(iPageId);
+        }
 
         mDrawView = (DrawView) findViewById(R.id.draw_view);
         mUndoButton = (Button) findViewById(R.id.undo_button);
@@ -282,22 +299,11 @@ public class DrawingActivity extends AppCompatActivity {
     //=================================
     //  Change if BeingWorkedOn
     //=================================
-    @Override
-    protected void onPause() {
-        dPageRef.child("beingWorkedOn").setValue("no");
-        super.onPause();
-    }
 
     @Override
     protected void onResume() {
         dPageRef.child("beingWorkedOn").setValue("yes");
         super.onResume();
-    }
-
-    @Override
-    protected void onStop() {
-        dPageRef.child("beingWorkedOn").setValue("no");
-        super.onStop();
     }
 
     @Override

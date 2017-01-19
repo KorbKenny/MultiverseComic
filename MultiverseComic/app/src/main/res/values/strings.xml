@@ -4,4 +4,7 @@
     <string name="done_something_already">You\'ve already done enough on this page</string>
     <string name="draw_picture_first">Someone should draw the picture first!</string>
     <string name="title_activity_drawing">DrawingActivity</string>
+    <string name="title_activity_front_page">FrontPageActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

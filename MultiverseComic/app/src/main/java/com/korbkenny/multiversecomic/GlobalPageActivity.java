@@ -7,36 +7,31 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.korbkenny.multiversecomic.Drawing.DrawingActivity;
+import com.korbkenny.multiversecomic.drawing.DrawingActivity;
 import com.squareup.picasso.Picasso;
 
-public class PageActivity extends AppCompatActivity {
+public class GlobalPageActivity extends AppCompatActivity {
     public static final String DB_NULL = "qQq~~;:~qsquefjjj+++[|~[";
-    private static final String TAG = "PageActivity: ";
+    private static final String TAG = "GlobalPageActivity: ";
     private boolean leftIsEmpty = false;
     private boolean rightIsEmpty = false;
     private boolean mainIsEmpty = false;
@@ -45,27 +40,33 @@ public class PageActivity extends AppCompatActivity {
 
     private String iUserId;
 
-    String iPageId, iNextPageLeft, iNextPageRight, iPrevPage;
-    SquareImageView mPageImage;
-    TextView mLeft, mRight, mTitle, mLoadingBg;
-    ProgressBar mLoadingCircle;
-    FirebaseDatabase db;
-    DatabaseReference globalRef;
-    RelativeLayout mMainLayout;
-    LinearLayout mButtonsLayout;
-    FirebaseAuth.AuthStateListener mAuthListener;
+    private String iPageId, iNextPageLeft, iNextPageRight;
+    private SquareImageView mPageImage;
+    private TextView mLeft, mRight, mTitle, mLoadingBg;
+    private ProgressBar mLoadingCircle;
+    private FirebaseDatabase db;
+    private DatabaseReference dGlobalRef;
+    private RelativeLayout mMainLayout;
+    private LinearLayout mButtonsLayout;
+    private ValueEventListener mEventListener, mBeingWorkedOnListener;
 
-    private PageObject mThisPage;
+    private GlobalPageObject mThisPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_page);
 
-        //Views
+        //Views and DBref
         simpleSetup();
+
+        //Obv toolbar setup
         toolbarSetup();
+
+        //This fetches the current page from the database
         getPage();
+
+        //This just listens for if the page is being worked on.
         dbListeners();
 
 
@@ -78,16 +79,18 @@ public class PageActivity extends AppCompatActivity {
 
                 if(mainIsEmpty){
                     if(mThisPage.getFromUser().equals(iUserId)){
-                        Toast.makeText(PageActivity.this, "Must let someone else draw this one.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GlobalPageActivity.this, "Must let someone else draw this one.", Toast.LENGTH_SHORT).show();
                     } else {
                         if (beingWorkedOn.equals("no")) {
-                            globalRef.child("beingWorkedOn").setValue("yes");
-                            Intent intent = new Intent(PageActivity.this, DrawingActivity.class);
+                            dGlobalRef.child("beingWorkedOn").setValue("yes");
+                            Intent intent = new Intent(GlobalPageActivity.this, DrawingActivity.class);
                             intent.putExtra("PageId", iPageId);
                             intent.putExtra("MyUserId", iUserId);
+                            intent.putExtra("FromUser", mThisPage.getFromUser());
+                            intent.putExtra("FromPageId", mThisPage.getFrom());
                             startActivity(intent);
                         } else {
-                            Toast.makeText(PageActivity.this, getResources().getString(R.string.already_working), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.already_working), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -104,7 +107,7 @@ public class PageActivity extends AppCompatActivity {
                 //  Opens the next page (left)
                 //=================================
                 if (!leftIsEmpty) {
-                    Intent nextIntent = new Intent(PageActivity.this,PageActivity.class);
+                    Intent nextIntent = new Intent(GlobalPageActivity.this,GlobalPageActivity.class);
                     nextIntent.putExtra("nextpage", mThisPage.getNextLeft());
                     nextIntent.putExtra("MyUserId", iUserId);
                     startActivity(nextIntent);
@@ -117,12 +120,12 @@ public class PageActivity extends AppCompatActivity {
                 //  denies you access if being worked on
                 //=================================
                 if (mainIsEmpty){
-                    Toast.makeText(PageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
                 } else {
                     if (!mThisPage.getLeftUser().equals(iUserId) && !mThisPage.getRightUser().equals(iUserId) && !mThisPage.getUser().equals(iUserId)) {
                         createLeftDialog();
                     } else {
-                        Toast.makeText(PageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -138,7 +141,7 @@ public class PageActivity extends AppCompatActivity {
                 //  Opens the next page (right)
                 //=================================
                 if (!rightIsEmpty) {
-                    Intent nextIntent = new Intent(PageActivity.this,PageActivity.class);
+                    Intent nextIntent = new Intent(GlobalPageActivity.this,GlobalPageActivity.class);
                     nextIntent.putExtra("nextpage", mThisPage.getNextRight());
                     nextIntent.putExtra("MyUserId", iUserId);
                     startActivity(nextIntent);
@@ -151,12 +154,12 @@ public class PageActivity extends AppCompatActivity {
                 //  denies you access if being worked on
                 //=================================
                 if (mainIsEmpty){
-                    Toast.makeText(PageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
                 } else {
                     if (!mThisPage.getLeftUser().equals(iUserId) && !mThisPage.getRightUser().equals(iUserId) && !mThisPage.getUser().equals(iUserId)) {
                             createRightDialog();
                         } else {
-                            Toast.makeText(PageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -183,7 +186,7 @@ public class PageActivity extends AppCompatActivity {
         mButtonsLayout = (LinearLayout)findViewById(R.id.page_layout_buttons);
 
         db = FirebaseDatabase.getInstance();
-        globalRef = db.getReference("Global").child(iPageId);
+        dGlobalRef = db.getReference("Global").child(iPageId);
     }
 
     //==================
@@ -203,7 +206,7 @@ public class PageActivity extends AppCompatActivity {
                         mLoadingCircle.setVisibility(View.VISIBLE);
                         Dialog view = (Dialog) dialog;
                         EditText rightEdit = (EditText)view.findViewById(R.id.right_edit);
-                        globalRef.child("right").setValue(rightEdit.getText().toString());
+                        dGlobalRef.child("right").setValue(rightEdit.getText().toString());
                         rightIsEmpty = false;
                         mRight.setText(rightEdit.getText().toString());
                         mThisPage.setRightUser(iUserId);
@@ -211,12 +214,20 @@ public class PageActivity extends AppCompatActivity {
 
                     @Override
                     protected Void doInBackground(Void... voids) {
-                        globalRef.child("rightUser").setValue(iUserId);
+                        dGlobalRef.child("rightUser").setValue(iUserId);
                         DatabaseReference nextRef = db.getReference("Global");
                         iNextPageRight = nextRef.push().getKey();
-                        globalRef.child("nextRight").setValue(iNextPageRight);
+                        dGlobalRef.child("nextRight").setValue(iNextPageRight);
                         mThisPage.setNextRight(iNextPageRight);
                         createNextPage(iNextPageRight);
+                        if(!mThisPage.getLeftUser().equals(DB_NULL)) {
+                            DatabaseReference updatedPageRef = db.getReference("Users").child(mThisPage.getLeftUser()).child("pageUpdate");
+                            updatedPageRef.setValue(iPageId);
+                        }
+                        if(!mThisPage.getUser().equals(DB_NULL)){
+                            DatabaseReference updatedPageRef = db.getReference("Users").child(mThisPage.getUser()).child("pageUpdate");
+                            updatedPageRef.setValue(iPageId);
+                        }
                         return null;
                     }
 
@@ -250,7 +261,7 @@ public class PageActivity extends AppCompatActivity {
                         mLoadingCircle.setVisibility(View.VISIBLE);
                         Dialog view = (Dialog) dialog;
                         EditText leftEdit = (EditText)view.findViewById(R.id.left_edit);
-                        globalRef.child("left").setValue(leftEdit.getText().toString());
+                        dGlobalRef.child("left").setValue(leftEdit.getText().toString());
                         mLeft.setText(leftEdit.getText().toString());
                         leftIsEmpty = false;
                         mThisPage.setLeftUser(iUserId);
@@ -258,12 +269,20 @@ public class PageActivity extends AppCompatActivity {
 
                     @Override
                     protected Void doInBackground(Void... voids) {
-                        globalRef.child("leftUser").setValue(iUserId);
+                        dGlobalRef.child("leftUser").setValue(iUserId);
                         DatabaseReference nextRef = db.getReference("Global");
                         iNextPageLeft = nextRef.push().getKey();
-                        globalRef.child("nextLeft").setValue(iNextPageLeft);
+                        dGlobalRef.child("nextLeft").setValue(iNextPageLeft);
                         mThisPage.setNextLeft(iNextPageLeft);
                         createNextPage(iNextPageLeft);
+                        if(!mThisPage.getRightUser().equals(DB_NULL)) {
+                            DatabaseReference updatedPageRef = db.getReference("Users").child(mThisPage.getRightUser()).child("pageUpdate");
+                            updatedPageRef.setValue(iPageId);
+                        }
+                        if(!mThisPage.getUser().equals(DB_NULL)){
+                            DatabaseReference updatedPageRef = db.getReference("Users").child(mThisPage.getUser()).child("pageUpdate");
+                            updatedPageRef.setValue(iPageId);
+                        }
                         return null;
                     }
 
@@ -284,7 +303,7 @@ public class PageActivity extends AppCompatActivity {
     //====================
     private void createNextPage(String nextPageId) {
         DatabaseReference nextPageRef = db.getReference("Global").child(nextPageId);
-        PageObject po = new PageObject();
+        GlobalPageObject po = new GlobalPageObject();
 
         po.setText(DB_NULL);
         po.setImage(DB_NULL);
@@ -314,8 +333,9 @@ public class PageActivity extends AppCompatActivity {
         home.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(PageActivity.this,MainActivity.class);
+                Intent intent = new Intent(GlobalPageActivity.this,HomeActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.putExtra("MyUserId",iUserId);
                 startActivity(intent);
             }
         });
@@ -353,13 +373,13 @@ public class PageActivity extends AppCompatActivity {
             case(KeyEvent.KEYCODE_BACK):
                 if(mThisPage!=null) {
                     if (!mThisPage.getFrom().equals(DB_NULL)) {
-                        Intent backIntent = new Intent(PageActivity.this, PageActivity.class);
+                        Intent backIntent = new Intent(GlobalPageActivity.this, GlobalPageActivity.class);
                         backIntent.putExtra("nextpage", mThisPage.getFrom());
                         backIntent.putExtra("MyUserId", iUserId);
                         startActivity(backIntent);
                         finish();
                     } else {
-                        Intent intent = new Intent(PageActivity.this, MainActivity.class);
+                        Intent intent = new Intent(GlobalPageActivity.this, HomeActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         intent.putExtra("MyUserId", iUserId);
                         startActivity(intent);
@@ -374,15 +394,14 @@ public class PageActivity extends AppCompatActivity {
     //       Get Full Page Data
     //==================================
     public void getPage(){
-        DatabaseReference pageRef = db.getReference("Global").child(iPageId);
-        pageRef.addValueEventListener(new ValueEventListener() {
+        mEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshot) {
                 new AsyncTask<Void,Void,Void>(){
                     @Override
                     protected Void doInBackground(Void... voids) {
                         if(dataSnapshot!=null){
-                            mThisPage = dataSnapshot.getValue(PageObject.class);
+                            mThisPage = dataSnapshot.getValue(GlobalPageObject.class);
                         }
                         return null;
                     }
@@ -397,7 +416,7 @@ public class PageActivity extends AppCompatActivity {
                         //  Set Image
                         //================================
                         if(!mThisPage.getImage().equals(DB_NULL)){
-                            Picasso.with(PageActivity.this).load(mThisPage.getImage()).placeholder(R.drawable.loadingimage).into(mPageImage);
+                            Picasso.with(GlobalPageActivity.this).load(mThisPage.getImage()).placeholder(R.drawable.loadingimage).into(mPageImage);
                         } else {
                             mPageImage.setImageResource(R.drawable.drawplaceholder);
                         }
@@ -454,27 +473,28 @@ public class PageActivity extends AppCompatActivity {
                         //=========================
                         //      Set Continue
                         //=========================
-                        SharedPreferences sp = getSharedPreferences(MainActivity.SHARED_PREF,MODE_PRIVATE);
+                        SharedPreferences sp = getSharedPreferences(HomeActivity.SHARED_PREF,MODE_PRIVATE);
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString("ContinuePageId",iPageId);
                         editor.commit();
                     }
                 }.execute();
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        dGlobalRef.addValueEventListener(mEventListener);
     }
 
     private void dbListeners() {
         //================================================
         //  Set if image+text is being worked on currently
         //================================================
-        globalRef.child("beingWorkedOn").addValueEventListener(new ValueEventListener() {
+        mBeingWorkedOnListener = new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshot) {
                 new AsyncTask<Void, Void, String>() {
@@ -494,20 +514,15 @@ public class PageActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        dGlobalRef.child("beingWorkedOn").addValueEventListener(mBeingWorkedOnListener);
     }
 
-//    private void createAuthListener() {
-//        FirebaseAuth auth = FirebaseAuth.getInstance();
-//        mAuthListener = new FirebaseAuth.AuthStateListener() {
-//            @Override
-//            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-//                FirebaseUser user = firebaseAuth.getCurrentUser();
-//                if(user!=null){
-//                    iUserId = user.getUid();
-//                }
-//            }
-//        };
-//        auth.addAuthStateListener(mAuthListener);
-//    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dGlobalRef.removeEventListener(mEventListener);
+        dGlobalRef.child("beingWorkedOn").removeEventListener(mBeingWorkedOnListener);
+    }
 }

@@ -1,4 +1,4 @@
-package com.korbkenny.multiversecomic.Drawing;
+package com.korbkenny.multiversecomic.drawing;
 
 import android.graphics.Paint;
 import android.graphics.Path;

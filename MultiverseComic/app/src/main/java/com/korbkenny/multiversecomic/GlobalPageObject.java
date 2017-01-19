@@ -4,11 +4,11 @@ package com.korbkenny.multiversecomic;
  * Created by KorbBookProReturns on 1/14/17.
  */
 
-public class PageObject {
+public class GlobalPageObject {
     private String mText, mImage, mUser, mFrom, mFromUser, mLeft, mLeftUser, mNextLeft,
     mRight, mRightUser, mNextRight, mBeingWorkedOn;
 
-    public PageObject() {}
+    public GlobalPageObject() {}
 
     public String getText() {
         return mText;

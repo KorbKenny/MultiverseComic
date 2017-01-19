@@ -18,11 +18,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.korbkenny.multiversecomic.home.MainActivity;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private EditText mEditEmail, mEditPassword;
+    private EditText mEditUsername, mEditEmail, mEditPassword;
     private Button mSignUpButton, mLogInButton;
 
     @Override
@@ -59,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     //============================
-    //  Sign Up
+    //       Sign Up
     //============================
     private void signUp(String email, String password) {
         if(!validateLoginForm()){
@@ -82,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
                         protected Void doInBackground(Void... voids) {
                             userRef.child("userid").setValue(userId);
                             userRef.child("useremail").setValue(userEmail);
+                            userRef.child("pageUpdate").setValue(GlobalPageActivity.DB_NULL);
                             return null;
                         }
                     }.execute();
@@ -91,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     //============================
-    //  Log In
+    //       Log In
     //============================
     private void logIn(String email, String password) {
         if(!validateLoginForm()){
@@ -113,6 +115,7 @@ public class LoginActivity extends AppCompatActivity {
     //      Set up views
     //============================
     private void simpleSetup() {
+//        mEditUsername = (EditText)findViewById(R.id.username_edit);
         mEditEmail = (EditText)findViewById(R.id.sign_up_email);
         mEditPassword = (EditText)findViewById(R.id.sign_up_password);
         mLogInButton = (Button)findViewById(R.id.log_in_button);
@@ -129,7 +132,11 @@ public class LoginActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user!=null){
-                    Intent intent = new Intent(LoginActivity.this,MainActivity.class);
+                      // This is the new home page, with the viewpager and fragments and stuff
+//                    Intent intent = new Intent(LoginActivity.this,MainActivity.class);
+
+                    //  Old home page.
+                    Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
                     intent.putExtra("MyUserId",user.getUid());
                     startActivity(intent);
                     finish();
@@ -175,6 +182,23 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             mEditPassword.setError(null);
         }
+
+//        String username = mEditUsername.getText().toString();
+//        if(TextUtils.isEmpty(username)){
+//            mEditUsername.setError("Required.");
+//            valid = false;
+//        } else if (username.length() < 4){
+//            mEditUsername.setError("Too Short.");
+//            valid = false;
+//        } else {
+//            mEditUsername.setError(null);
+//        }
         return valid;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAuth.removeAuthStateListener(mAuthListener);
     }
 }

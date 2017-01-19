@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.korbkenny.multiversecomic.HomeActivity">
+
+    <ImageView
+        android:id="@+id/main_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <Button
+        android:id="@+id/bt_start_from_beginning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start from the Beginning"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"/>
+
+    <Button
+        android:id="@+id/bt_continue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:text="Continue"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/bt_groups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:text="Groups"/>
+
+    <TextView
+        android:id="@+id/updated_page"
+        android:layout_width="200dp"
+        android:layout_margin="16dp"
+        android:layout_height="wrap_content"
+        android:text="A page you worked on was updated!"
+        android:fontFamily="casual"
+        android:textSize="30dp"
+        android:visibility="gone"/>
+
+
+</RelativeLayout>

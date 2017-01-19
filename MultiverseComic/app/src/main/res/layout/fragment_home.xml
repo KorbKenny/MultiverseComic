@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <com.korbkenny.multiversecomic.SquareImageView
+        android:id="@+id/home_art"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/optionalfirstcover"/>
+    <TextView
+        android:id="@+id/home_separator"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="#000000"
+        android:text="guest cover by KorbKenny"
+        android:gravity="center_vertical|right"
+        android:paddingRight="20dp"
+        android:fontFamily="casual"
+        android:textColor="#cccccc"
+        android:layout_below="@id/home_art"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/home_separator"
+        >
+
+        <Button
+            android:id="@+id/home_start_from_beginning"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:background="#ccddff"
+            android:text="Start from\nthe beginning"
+            android:textSize="20sp"
+            android:fontFamily="casual"/>
+
+        <Button
+            android:id="@+id/home_continue_where_left_off"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:background="#ddffcc"
+            android:text="Continue where\nyou left off"
+            android:fontFamily="casual"
+            android:textSize="20sp"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+</RelativeLayout>

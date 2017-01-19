@@ -1,4 +1,4 @@
-package com.korbkenny.multiversecomic.Drawing;
+package com.korbkenny.multiversecomic.drawing;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,15 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by KorbBookProReturns on 1/11/17.
@@ -30,7 +27,6 @@ public class DrawView extends View{
     private Bitmap mCanvasBitmap;
     private List<PathPaint> mMoveList, mUndoList, mCurrentMoveList;
     private float mBrushSize, mLastBrushSize;
-    private int mUndoCounter = 0;
     private int  mPaintAlpha;
 
     public DrawView(Context context, AttributeSet attrs) {
@@ -47,15 +43,19 @@ public class DrawView extends View{
     }
 
     private void setupDrawing(){
-        mBrushSize = 15;
+        mBrushSize = 8;
         mPaintAlpha = 255;
         mLastBrushSize = mBrushSize;
 
         mDrawPath = new Path();
         mDrawPaint = new Paint();
         mMoveList = new ArrayList<>();
-        mUndoList = new ArrayList<>();
         mCurrentMoveList = new ArrayList<>();
+
+        setBrushSize(8);
+
+        //  Will use this for redo function
+        mUndoList = new ArrayList<>();
 
         mDrawPaint.setStrokeWidth(mBrushSize);
         mDrawPaint.setAntiAlias(true);
@@ -76,14 +76,17 @@ public class DrawView extends View{
 
     @Override
     protected void onDraw(Canvas canvas) {
-//        canvas.drawBitmap(mCanvasBitmap,0,0,mCanvasPaint);
-//        canvas.drawPath(mDrawPath,mDrawPaint);
+        //  It actually redraws every path in mMoveList
+        //  every time invalidate() is called.
         for(PathPaint pp:mMoveList){
             mDrawPaint.setStrokeWidth(pp.getBrushSize());
             mDrawPaint.setColor(pp.getPaintColor());
             mDrawPaint.setAlpha(pp.getPaintAlpha());
             canvas.drawPath(pp.getPath(),pp.getPaint());
         }
+
+        //  And then it draws the current line. I do this
+        //  because opacity wasn't working otherwise.
         for(PathPaint pp:mCurrentMoveList){
             mDrawPaint.setStrokeWidth(pp.getBrushSize());
             mDrawPaint.setColor(pp.getPaintColor());
@@ -99,15 +102,19 @@ public class DrawView extends View{
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                //  When you touch the screen, the path will now start
+                //  at the xy that your finger touched.
                 mDrawPath.moveTo(touchX, touchY);
                 break;
             case MotionEvent.ACTION_MOVE:
+                //  When you move your finger, it draws a path with the current brush stuff,
+                //  and adds it to the current move list to be redrawn after.
                 mDrawPath.lineTo(touchX, touchY);
                 mCurrentMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize,mPaintColor,mPaintAlpha));
                 break;
             case MotionEvent.ACTION_UP:
-                mUndoCounter = 0;
-//                mDrawCanvas.drawPath(mDrawPath, mDrawPaint);
+                //  Add the path you just drew to the move list so you can undo it later.
+                //  Reset everything for the next path.
                 mMoveList.add(new PathPaint(mDrawPath,mDrawPaint,mBrushSize,mPaintColor,mPaintAlpha));
                 mDrawPath = new Path();
                 mDrawPath.reset();
@@ -116,22 +123,14 @@ public class DrawView extends View{
             default:
                 return false;
         }
+        //  invalidate() calls the onDraw callback.
         invalidate();
         return true;
     }
 
     public void undo(){
         if (mMoveList.size() > 0){
-            mUndoCounter++;
             mMoveList.remove(mMoveList.size()-(1));
-            invalidate();
-        }
-    }
-
-    public void clearEverything(){
-        if (mMoveList.size() > 0){
-            mUndoCounter = 0;
-            mMoveList.clear();
             invalidate();
         }
     }
@@ -151,13 +150,5 @@ public class DrawView extends View{
     public void setOpacity(int newAlpha){
         mPaintAlpha = Math.round((float)newAlpha/100*255);
         mDrawPaint.setAlpha(mPaintAlpha);
-    }
-
-    public void setLastBrushSize(float lastSize){
-        mLastBrushSize=lastSize;
-    }
-
-    public float getLastBrushSize(){
-        return mLastBrushSize;
     }
 }

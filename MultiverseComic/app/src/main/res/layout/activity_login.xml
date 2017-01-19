@@ -13,6 +13,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp">
 
+        <!--<EditText-->
+            <!--android:id="@+id/username_edit"-->
+            <!--android:layout_width="300dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:inputType="textEmailAddress"-->
+            <!--android:hint="Username"-->
+            <!--android:layout_centerHorizontal="true"/>-->
+
         <EditText
             android:id="@+id/sign_up_email"
             android:layout_width="300dp"
