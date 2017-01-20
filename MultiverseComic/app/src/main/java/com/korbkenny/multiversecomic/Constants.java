@@ -33,6 +33,7 @@ public abstract class Constants {
     public static final String IMAGE = "image";
     public static final String USER = "user";
     public static final String USER_ID = "userid";
+    public static final String USER_NAME = "userName";
     public static final String USER_EMAIL = "useremail";
     public static final String PAGE_UPDATE = "pageUpdate";
     public static final String IMAGE_USER = "imageUser";
