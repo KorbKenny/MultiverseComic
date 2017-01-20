@@ -171,30 +171,21 @@ public class GlobalPageActivity extends AppCompatActivity {
     }
 
     private void createLeftRightDialog(final String leftORright){
-        Log.d(TAG, "createLeftRightDialog: ");
         int layoutToInflate;
         final int editText;
         final TextView textView;
-        final String dbUser, thisPageUser, nextPage, nextDirectionDB, thisPageOtherUser;
+        final String thisPageOtherUser;
         switch (leftORright){
             case Constants.RIGHT:
                 layoutToInflate = R.layout.right_dialog;
                 editText = R.id.right_edit;
                 textView = mRight;
-                dbUser = Constants.RIGHT_USER;
-                nextPage = iNextPageRight;
-                thisPageUser = mThisPage.getRightUser();
-                nextDirectionDB = Constants.NEXT_RIGHT;
                 thisPageOtherUser = mThisPage.getLeftUser();
                 break;
             case Constants.LEFT:
                 layoutToInflate = R.layout.left_dialog;
                 editText = R.id.left_edit;
                 textView = mLeft;
-                dbUser = Constants.LEFT_USER;
-                thisPageUser = mThisPage.getLeftUser();
-                nextPage = iNextPageLeft;
-                nextDirectionDB = Constants.NEXT_LEFT;
                 thisPageOtherUser = mThisPage.getRightUser();
                 break;
             default:
@@ -231,21 +222,26 @@ public class GlobalPageActivity extends AppCompatActivity {
                         DatabaseReference nextRef = db.getReference(Constants.GLOBAL);
                         if (leftORright.equals(Constants.RIGHT)){
                             iNextPageRight = nextRef.push().getKey();
+                            Log.d(TAG, "doInBackground: "+iNextPageRight);
                             mThisPage.setNextRight(iNextPageRight);
+                            dGlobalRef.child(Constants.NEXT_RIGHT).setValue(iNextPageRight);
+                            createNextPage(iNextPageRight);
                         } else {
                             iNextPageLeft = nextRef.push().getKey();
+                            Log.d(TAG, "doInBackground: "+iNextPageLeft);
                             mThisPage.setNextLeft(iNextPageLeft);
+                            dGlobalRef.child(Constants.NEXT_LEFT).setValue(iNextPageLeft);
+                            createNextPage(iNextPageLeft);
                         }
-                        dGlobalRef.child(nextDirectionDB).setValue(iNextPageRight);
-                        createNextPage(nextPage);
-                        DatabaseReference updatedPageRef = null;
+                        DatabaseReference updatedPageRef;
                         if(!thisPageOtherUser.equals(Constants.DB_NULL)) {
                             updatedPageRef = db.getReference(Constants.USERS).child(thisPageOtherUser).child(Constants.PAGE_UPDATE);
+                            updatedPageRef.setValue(iPageId);
                         }
                         if(!mThisPage.getUser().equals(Constants.DB_NULL)){
                             updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getUser()).child(Constants.PAGE_UPDATE);
+                            updatedPageRef.setValue(iPageId);
                         }
-                        if (updatedPageRef!=null){updatedPageRef.setValue(iPageId);}
                         return null;
                     }
 
