@@ -68,13 +68,13 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                     if(mThisPage.getFromUser().equals(iUserId)){
                         Toast.makeText(GroupSinglePageActivity.this, "Let someone else draw this one", Toast.LENGTH_SHORT).show();
                     } else {
-                        if(beingWorkedOn.equals("no")){
-                            dThisPageRef.child("beingWorkedOn").setValue("yes");
+                        if(beingWorkedOn.equals(Constants.BEING_WORKED_ON_NO)){
+                            dThisPageRef.child(Constants.BEING_WORKED_ON).setValue(Constants.BEING_WORKED_ON_YES);
                             Intent intent = new Intent(GroupSinglePageActivity.this,DrawingActivity.class);
-                            intent.putExtra("PageId", iPageId);
-                            intent.putExtra("MyUserId", iUserId);
-                            intent.putExtra("GroupId", iGroupId);
-                            intent.putExtra("FromUser", mThisPage.getFromUser());
+                            intent.putExtra(Constants.PAGE_ID, iPageId);
+                            intent.putExtra(Constants.MY_USER_ID, iUserId);
+                            intent.putExtra(Constants.GROUP_ID, iGroupId);
+                            intent.putExtra(Constants.FROM_USER, mThisPage.getFromUser());
                             startActivity(intent);
                         } else {
                             Toast.makeText(GroupSinglePageActivity.this, getResources().getString(R.string.already_working), Toast.LENGTH_SHORT).show();
@@ -89,9 +89,9 @@ public class GroupSinglePageActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(buttonIsEmpty){
                     Intent intent = new Intent(GroupSinglePageActivity.this,GroupSinglePageActivity.class);
-                    intent.putExtra("MyUserId",iUserId);
-                    intent.putExtra("GroupId",iGroupId);
-                    intent.putExtra("nextpage",mThisPage.getNext());
+                    intent.putExtra(Constants.MY_USER_ID,iUserId);
+                    intent.putExtra(Constants.GROUP_ID,iGroupId);
+                    intent.putExtra(Constants.NEXT_PAGE,mThisPage.getNext());
                     startActivity(intent);
                     finish();
                     return;
@@ -160,7 +160,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         DatabaseReference nextPageRef = db.getReference("Groups").child(iGroupId).child(nextPageId);
         GroupSinglePageObject ppo = new GroupSinglePageObject();
 
-        ppo.setBeingWorkedOn("no");
+        ppo.setBeingWorkedOn(Constants.BEING_WORKED_ON_NO);
         ppo.setFrom(iPageId);
         ppo.setFromUser(iUserId);
         ppo.setImage(Constants.DB_NULL);
@@ -244,9 +244,9 @@ public class GroupSinglePageActivity extends AppCompatActivity {
     }
 
     private void simpleSetup() {
-        iUserId = getIntent().getStringExtra("MyUserId");
-        iPageId = getIntent().getStringExtra("nextpage");
-        iGroupId = getIntent().getStringExtra("GroupId");
+        iUserId = getIntent().getStringExtra(Constants.MY_USER_ID);
+        iPageId = getIntent().getStringExtra(Constants.NEXT_PAGE);
+        iGroupId = getIntent().getStringExtra(Constants.GROUP_ID);
 
         mPageImage = (SquareImageView)findViewById(R.id.private_page_image);
         mTitle = (TextView) findViewById(R.id.private_page_text);
@@ -256,7 +256,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         mMainLayout = (RelativeLayout)findViewById(R.id.private_page_layout_top);
 
         db = FirebaseDatabase.getInstance();
-        dThisPageRef = db.getReference("Groups").child(iGroupId).child(iPageId);
+        dThisPageRef = db.getReference(Constants.GROUPS).child(iGroupId).child(iPageId);
     }
 
     public void toolbarSetup(){
@@ -305,7 +305,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         //================================================
         //  Set if image+text is being worked on currently
         //================================================
-        dThisPageRef.child("beingWorkedOn").addValueEventListener(new ValueEventListener() {
+        dThisPageRef.child(Constants.BEING_WORKED_ON).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshot) {
                 new AsyncTask<Void, Void, String>() {
