@@ -379,10 +379,11 @@ public class GlobalPageActivity extends AppCompatActivity {
                         startActivity(backIntent);
                         finish();
                     } else {
-                        Intent intent = new Intent(GlobalPageActivity.this, HomeActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        intent.putExtra("MyUserId", iUserId);
-                        startActivity(intent);
+                        finish();
+//                        Intent intent = new Intent(GlobalPageActivity.this, HomeActivity.class);
+//                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                        intent.putExtra("MyUserId", iUserId);
+//                        startActivity(intent);
                     }
                 }
                 return true;

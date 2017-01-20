@@ -1,5 +1,6 @@
 package com.korbkenny.multiversecomic.home;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,9 +11,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.google.firebase.database.FirebaseDatabase;
+import com.korbkenny.multiversecomic.GlobalPageActivity;
 import com.korbkenny.multiversecomic.R;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.korbkenny.multiversecomic.HomeActivity.FIRST_PAGE_ID;
 import static com.korbkenny.multiversecomic.HomeActivity.SHARED_PREF;
 
 /**
@@ -38,14 +41,20 @@ public class HomeFragment extends Fragment {
         mStartFromBeginning.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                Intent intent = new Intent(getActivity(), GlobalPageActivity.class);
+                intent.putExtra("nextpage",FIRST_PAGE_ID);
+                intent.putExtra("MyUserId",iUserId);
+                startActivity(intent);
             }
         });
 
         mContinueWhereLeftOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                Intent intent = new Intent(getActivity(),GlobalPageActivity.class);
+                intent.putExtra("nextpage",iContinuePageId);
+                intent.putExtra("MyUserId",iUserId);
+                startActivity(intent);
             }
         });
     }
