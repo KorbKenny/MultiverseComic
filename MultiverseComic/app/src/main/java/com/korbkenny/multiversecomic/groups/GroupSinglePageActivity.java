@@ -137,7 +137,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         dThisPageRef.child("buttonUser").setValue(iUserId);
-                        DatabaseReference nextRef = db.getReference("Groups").child(iGroupId);
+                        DatabaseReference nextRef = db.getReference(Constants.GROUPS).child(iGroupId);
                         iNextPageId = nextRef.push().getKey();
                         dThisPageRef.child("next").setValue(iNextPageId);
                         mThisPage.setNext(iNextPageId);
@@ -157,7 +157,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
     }
 
     private void createNextPage(String nextPageId) {
-        DatabaseReference nextPageRef = db.getReference("Groups").child(iGroupId).child(nextPageId);
+        DatabaseReference nextPageRef = db.getReference(Constants.GROUPS).child(iGroupId).child(nextPageId);
         GroupSinglePageObject ppo = new GroupSinglePageObject();
 
         ppo.setBeingWorkedOn(Constants.BEING_WORKED_ON_NO);
