@@ -7,10 +7,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -99,18 +100,31 @@ public class GlobalPageActivity extends AppCompatActivity {
             }
         });
 
-        //=================================
-        //  Left Button
-        //=================================
-        mLeft.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener leftRightClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                boolean isEmpty;
+                String leftORright, nextRightOrLeft;
+                switch (view.getId()){
+                    case R.id.button_right:
+                        isEmpty = rightIsEmpty;
+                        nextRightOrLeft = mThisPage.getNextRight();
+                        leftORright = Constants.RIGHT;
+                        break;
+                    case R.id.button_left:
+                        isEmpty = leftIsEmpty;
+                        nextRightOrLeft = mThisPage.getNextLeft();
+                        leftORright = Constants.LEFT;
+                        break;
+                    default:
+                        return;
+                }
                 //=================================
-                //  Opens the next page (left)
+                //  Opens the next page
                 //=================================
-                if (!leftIsEmpty) {
+                if (!isEmpty) {
                     Intent nextIntent = new Intent(GlobalPageActivity.this,GlobalPageActivity.class);
-                    nextIntent.putExtra(Constants.NEXT_PAGE, mThisPage.getNextLeft());
+                    nextIntent.putExtra(Constants.NEXT_PAGE, nextRightOrLeft);
                     nextIntent.putExtra(Constants.MY_USER_ID, iUserId);
                     startActivity(nextIntent);
                     finish();
@@ -118,58 +132,23 @@ public class GlobalPageActivity extends AppCompatActivity {
                 }
 
                 //=================================
-                //  Edits the button (left) or
+                //  Edits the button or
                 //  denies you access if being worked on
                 //=================================
                 if (mainIsEmpty){
                     Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
                 } else {
                     if (!mThisPage.getLeftUser().equals(iUserId) && !mThisPage.getRightUser().equals(iUserId) && !mThisPage.getUser().equals(iUserId)) {
-                        createLeftDialog();
+                        createLeftRightDialog(leftORright);
                     } else {
                         Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
-        });
+        };
 
-        //=================================
-        //  Right Button
-        //=================================
-        mRight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //=================================
-                //  Opens the next page (right)
-                //=================================
-                if (!rightIsEmpty) {
-                    Intent nextIntent = new Intent(GlobalPageActivity.this,GlobalPageActivity.class);
-                    nextIntent.putExtra(Constants.NEXT_PAGE, mThisPage.getNextRight());
-                    nextIntent.putExtra(Constants.MY_USER_ID, iUserId);
-                    startActivity(nextIntent);
-                    finish();
-                    return;
-                }
-
-                //=================================
-                //  Edits the button (right) or
-                //  denies you access if being worked on
-                //=================================
-                if (mainIsEmpty){
-                    Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.draw_picture_first), Toast.LENGTH_SHORT).show();
-                } else {
-                    if (!mThisPage.getLeftUser().equals(iUserId) && !mThisPage.getRightUser().equals(iUserId) && !mThisPage.getUser().equals(iUserId)) {
-                            createRightDialog();
-                        } else {
-                            Toast.makeText(GlobalPageActivity.this, getResources().getString(R.string.done_something_already), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-
-                // To summarize: If there is a main image drawn, then it checks to see if it's currently being worked on.
-                // If it's not, it checks to see if you've done anything else on the page. If you haven't, then you can edit it.
-                // Of course, if there is no main image yet, it prompts you to draw that first.
-        });
+        mLeft.setOnClickListener(leftRightClickListener);
+        mRight.setOnClickListener(leftRightClickListener);
     }
 
     public void simpleSetup(){
@@ -191,13 +170,40 @@ public class GlobalPageActivity extends AppCompatActivity {
         dGlobalRef = db.getReference(Constants.GLOBAL).child(iPageId);
     }
 
-    //==================
-    //  Right Dialog
-    //==================
-    private void createRightDialog() {
+    private void createLeftRightDialog(final String leftORright){
+        Log.d(TAG, "createLeftRightDialog: ");
+        int layoutToInflate;
+        final int editText;
+        final TextView textView;
+        final String dbUser, thisPageUser, nextPage, nextDirectionDB, thisPageOtherUser;
+        switch (leftORright){
+            case Constants.RIGHT:
+                layoutToInflate = R.layout.right_dialog;
+                editText = R.id.right_edit;
+                textView = mRight;
+                dbUser = Constants.RIGHT_USER;
+                nextPage = iNextPageRight;
+                thisPageUser = mThisPage.getRightUser();
+                nextDirectionDB = Constants.NEXT_RIGHT;
+                thisPageOtherUser = mThisPage.getLeftUser();
+                break;
+            case Constants.LEFT:
+                layoutToInflate = R.layout.left_dialog;
+                editText = R.id.left_edit;
+                textView = mLeft;
+                dbUser = Constants.LEFT_USER;
+                thisPageUser = mThisPage.getLeftUser();
+                nextPage = iNextPageLeft;
+                nextDirectionDB = Constants.NEXT_LEFT;
+                thisPageOtherUser = mThisPage.getRightUser();
+                break;
+            default:
+                return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
-        builder.setView(inflater.inflate(R.layout.right_dialog,null));
+        builder.setView(inflater.inflate(layoutToInflate, null));
         builder.setPositiveButton("Do it", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, int i) {
@@ -207,29 +213,39 @@ public class GlobalPageActivity extends AppCompatActivity {
                         mLoadingBg.setVisibility(View.VISIBLE);
                         mLoadingCircle.setVisibility(View.VISIBLE);
                         Dialog view = (Dialog) dialog;
-                        EditText rightEdit = (EditText)view.findViewById(R.id.right_edit);
-                        dGlobalRef.child(Constants.RIGHT).setValue(rightEdit.getText().toString());
-                        rightIsEmpty = false;
-                        mRight.setText(rightEdit.getText().toString());
-                        mThisPage.setRightUser(iUserId);
+                        EditText rightEdit = (EditText)view.findViewById(editText);
+                        dGlobalRef.child(leftORright).setValue(rightEdit.getText().toString());
+                        if (leftORright.equals(Constants.RIGHT)){
+                            rightIsEmpty = false;
+                            mThisPage.setRightUser(iUserId);
+                        } else {
+                            leftIsEmpty = false;
+                            mThisPage.setLeftUser(iUserId);
+                        }
+                        textView.setText(rightEdit.getText().toString());
                     }
 
                     @Override
                     protected Void doInBackground(Void... voids) {
                         dGlobalRef.child(Constants.RIGHT_USER).setValue(iUserId);
                         DatabaseReference nextRef = db.getReference(Constants.GLOBAL);
-                        iNextPageRight = nextRef.push().getKey();
-                        dGlobalRef.child(Constants.NEXT_RIGHT).setValue(iNextPageRight);
-                        mThisPage.setNextRight(iNextPageRight);
-                        createNextPage(iNextPageRight);
-                        if(!mThisPage.getLeftUser().equals(Constants.DB_NULL)) {
-                            DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getLeftUser()).child("pageUpdate");
-                            updatedPageRef.setValue(iPageId);
+                        if (leftORright.equals(Constants.RIGHT)){
+                            iNextPageRight = nextRef.push().getKey();
+                            mThisPage.setNextRight(iNextPageRight);
+                        } else {
+                            iNextPageLeft = nextRef.push().getKey();
+                            mThisPage.setNextLeft(iNextPageLeft);
+                        }
+                        dGlobalRef.child(nextDirectionDB).setValue(iNextPageRight);
+                        createNextPage(nextPage);
+                        DatabaseReference updatedPageRef = null;
+                        if(!thisPageOtherUser.equals(Constants.DB_NULL)) {
+                            updatedPageRef = db.getReference(Constants.USERS).child(thisPageOtherUser).child(Constants.PAGE_UPDATE);
                         }
                         if(!mThisPage.getUser().equals(Constants.DB_NULL)){
-                            DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getUser()).child("pageUpdate");
-                            updatedPageRef.setValue(iPageId);
+                            updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getUser()).child(Constants.PAGE_UPDATE);
                         }
+                        if (updatedPageRef!=null){updatedPageRef.setValue(iPageId);}
                         return null;
                     }
 
@@ -242,61 +258,7 @@ public class GlobalPageActivity extends AppCompatActivity {
             }
         }).create()
                 .show();
-    }
 
-
-
-    //==================
-    //  Left Dialog
-    //==================
-    private void createLeftDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-        builder.setView(inflater.inflate(R.layout.left_dialog,null));
-        builder.setPositiveButton("Do it", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, int i) {
-                new AsyncTask<Void,Void,Void>(){
-                    @Override
-                    protected void onPreExecute() {
-                        mLoadingBg.setVisibility(View.VISIBLE);
-                        mLoadingCircle.setVisibility(View.VISIBLE);
-                        Dialog view = (Dialog) dialog;
-                        EditText leftEdit = (EditText)view.findViewById(R.id.left_edit);
-                        dGlobalRef.child(Constants.LEFT).setValue(leftEdit.getText().toString());
-                        mLeft.setText(leftEdit.getText().toString());
-                        leftIsEmpty = false;
-                        mThisPage.setLeftUser(iUserId);
-                    }
-
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        dGlobalRef.child(Constants.LEFT_USER).setValue(iUserId);
-                        DatabaseReference nextRef = db.getReference(Constants.GLOBAL);
-                        iNextPageLeft = nextRef.push().getKey();
-                        dGlobalRef.child(Constants.NEXT_LEFT).setValue(iNextPageLeft);
-                        mThisPage.setNextLeft(iNextPageLeft);
-                        createNextPage(iNextPageLeft);
-                        if(!mThisPage.getRightUser().equals(Constants.DB_NULL)) {
-                            DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getRightUser()).child("pageUpdate");
-                            updatedPageRef.setValue(iPageId);
-                        }
-                        if(!mThisPage.getUser().equals(Constants.DB_NULL)){
-                            DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mThisPage.getUser()).child("pageUpdate");
-                            updatedPageRef.setValue(iPageId);
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        mLoadingBg.setVisibility(View.GONE);
-                        mLoadingCircle.setVisibility(View.GONE);
-                    }
-                }.execute();
-            }
-        }).create()
-                .show();
     }
 
 
@@ -469,7 +431,7 @@ public class GlobalPageActivity extends AppCompatActivity {
                         //=========================
                         //      Set Continue
                         //=========================
-                        SharedPreferences sp = getSharedPreferences(HomeActivity.SHARED_PREF,MODE_PRIVATE);
+                        SharedPreferences sp = getSharedPreferences(Constants.SHARED_PREF,MODE_PRIVATE);
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString(Constants.CONTINUE_PAGE_ID,iPageId);
                         editor.commit();

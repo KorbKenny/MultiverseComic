@@ -7,9 +7,9 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +24,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.korbkenny.multiversecomic.GlobalPageActivity;
+import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.HomeActivity;
 import com.korbkenny.multiversecomic.R;
 import com.korbkenny.multiversecomic.SquareImageView;
@@ -163,12 +163,12 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         ppo.setBeingWorkedOn("no");
         ppo.setFrom(iPageId);
         ppo.setFromUser(iUserId);
-        ppo.setImage(GlobalPageActivity.DB_NULL);
-        ppo.setText(GlobalPageActivity.DB_NULL);
-        ppo.setImageUser(GlobalPageActivity.DB_NULL);
-        ppo.setNext(GlobalPageActivity.DB_NULL);
-        ppo.setButtonText(GlobalPageActivity.DB_NULL);
-        ppo.setButtonUser(GlobalPageActivity.DB_NULL);
+        ppo.setImage(Constants.DB_NULL);
+        ppo.setText(Constants.DB_NULL);
+        ppo.setImageUser(Constants.DB_NULL);
+        ppo.setNext(Constants.DB_NULL);
+        ppo.setButtonText(Constants.DB_NULL);
+        ppo.setButtonUser(Constants.DB_NULL);
 
         nextPageRef.setValue(ppo);
     }
@@ -193,7 +193,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Image
                         //================================
-                        if(!mThisPage.getImage().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getImage().equals(Constants.DB_NULL)){
                             Picasso.with(GroupSinglePageActivity.this).load(mThisPage.getImage()).placeholder(R.drawable.loadingimage).into(mPageImage);
                         } else {
                             mPageImage.setImageResource(R.drawable.drawplaceholder);
@@ -202,7 +202,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Main Text
                         //================================
-                        if(!mThisPage.getText().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getText().equals(Constants.DB_NULL)){
                             mTitle.setText(mThisPage.getText());
                             mainIsEmpty = false;
                         } else {
@@ -213,7 +213,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Button Text
                         //================================
-                        if(!mThisPage.getButtonText().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getButtonText().equals(Constants.DB_NULL)){
                             mNextText.setText(mThisPage.getButtonText());
                             mNextText.setTypeface(mNextText.getTypeface(), Typeface.BOLD);
                             mNextText.setTextColor(Color.BLACK);
@@ -228,7 +228,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                             }
                         }
 
-                        SharedPreferences sp = getSharedPreferences(HomeActivity.SHARED_PREF,MODE_PRIVATE);
+                        SharedPreferences sp = getSharedPreferences(Constants.SHARED_PREF,MODE_PRIVATE);
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString(iGroupId,iPageId);
                         editor.commit();
