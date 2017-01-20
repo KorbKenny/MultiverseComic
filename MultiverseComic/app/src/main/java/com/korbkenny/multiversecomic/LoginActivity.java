@@ -77,13 +77,13 @@ public class LoginActivity extends AppCompatActivity {
                     final String userId = task.getResult().getUser().getUid();
                     final String userEmail = task.getResult().getUser().getEmail();
                     FirebaseDatabase db = FirebaseDatabase.getInstance();
-                    final DatabaseReference userRef = db.getReference("Users").child(userId);
+                    final DatabaseReference userRef = db.getReference(Constants.USERS).child(userId);
                     new AsyncTask<Void,Void,Void>(){
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            userRef.child("userid").setValue(userId);
-                            userRef.child("useremail").setValue(userEmail);
-                            userRef.child("pageUpdate").setValue(GlobalPageActivity.DB_NULL);
+                            userRef.child(Constants.USER_ID).setValue(userId);
+                            userRef.child(Constants.USER_EMAIL).setValue(userEmail);
+                            userRef.child(Constants.PAGE_UPDATE).setValue(Constants.DB_NULL);
                             return null;
                         }
                     }.execute();
@@ -137,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     //  Old home page.
 //                    Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
-                    intent.putExtra("MyUserId",user.getUid());
+                    intent.putExtra(Constants.MY_USER_ID,user.getUid());
                     startActivity(intent);
                     finish();
                 }

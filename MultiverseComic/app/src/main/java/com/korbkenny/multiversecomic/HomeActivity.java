@@ -2,8 +2,8 @@ package com.korbkenny.multiversecomic;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -15,9 +15,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.korbkenny.multiversecomic.groups.GroupsActivity;
 
+import static com.korbkenny.multiversecomic.Constants.FIRST_PAGE_ID;
+
 public class HomeActivity extends AppCompatActivity {
-    public static String FIRST_PAGE_ID = "-KaAQza-n3z7al9Egl0N";
-    public static final String SHARED_PREF = "SharedPreferences";
 
     private FirebaseDatabase db;
     private String iContinuePageId, iUserId, iUpdatedPageId;
@@ -41,8 +41,8 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(HomeActivity.this,GlobalPageActivity.class);
-                intent.putExtra("nextpage",FIRST_PAGE_ID);
-                intent.putExtra("MyUserId",iUserId);
+                intent.putExtra(Constants.NEXT_PAGE,FIRST_PAGE_ID);
+                intent.putExtra(Constants.MY_USER_ID,iUserId);
                 startActivity(intent);
                 finish();
             }
@@ -79,7 +79,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 DatabaseReference updatedPageRef = db.getReference("Users").child(iUserId).child("pageUpdate");
-                updatedPageRef.setValue(GlobalPageActivity.DB_NULL);
+                updatedPageRef.setValue(Constants.DB_NULL);
                 Intent intent = new Intent(HomeActivity.this,GlobalPageActivity.class);
                 intent.putExtra("MyUserId",iUserId);
                 intent.putExtra("nextpage",iUpdatedPageId);
@@ -93,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
     //  Setup views and get continue page id
     //========================================
     public void simpleSetup(){
-        SharedPreferences sp = getSharedPreferences(SHARED_PREF,MODE_PRIVATE);
+        SharedPreferences sp = getSharedPreferences(Constants.SHARED_PREF,MODE_PRIVATE);
         iContinuePageId = sp.getString("ContinuePageId",null);
         iUserId = getIntent().getStringExtra("MyUserId");
 
@@ -117,7 +117,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null){
                     iUpdatedPageId = dataSnapshot.getValue(String.class);
-                    if(!iUpdatedPageId.equals(GlobalPageActivity.DB_NULL)){
+                    if(!iUpdatedPageId.equals(Constants.DB_NULL)){
                         mUpdatedPage.setVisibility(View.VISIBLE);
                     }
                 }

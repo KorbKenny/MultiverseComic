@@ -11,12 +11,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.google.firebase.database.FirebaseDatabase;
+import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.GlobalPageActivity;
 import com.korbkenny.multiversecomic.R;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.korbkenny.multiversecomic.HomeActivity.FIRST_PAGE_ID;
-import static com.korbkenny.multiversecomic.HomeActivity.SHARED_PREF;
 
 /**
  * Created by KorbBookProReturns on 1/17/17.
@@ -42,8 +41,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), GlobalPageActivity.class);
-                intent.putExtra("nextpage",FIRST_PAGE_ID);
-                intent.putExtra("MyUserId",iUserId);
+                intent.putExtra(Constants.NEXT_PAGE,Constants.FIRST_PAGE_ID);
+                intent.putExtra(Constants.MY_USER_ID,iUserId);
                 startActivity(intent);
             }
         });
@@ -52,17 +51,17 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(),GlobalPageActivity.class);
-                intent.putExtra("nextpage",iContinuePageId);
-                intent.putExtra("MyUserId",iUserId);
+                intent.putExtra(Constants.NEXT_PAGE,iContinuePageId);
+                intent.putExtra(Constants.MY_USER_ID,iUserId);
                 startActivity(intent);
             }
         });
     }
 
     private void simpleSetup(View view){
-        SharedPreferences sp = this.getActivity().getSharedPreferences(SHARED_PREF,MODE_PRIVATE);
-        iContinuePageId = sp.getString("ContinuePageId",null);
-        iUserId = this.getActivity().getIntent().getStringExtra("MyUserId");
+        SharedPreferences sp = this.getActivity().getSharedPreferences(Constants.SHARED_PREF,MODE_PRIVATE);
+        iContinuePageId = sp.getString(Constants.CONTINUE_PAGE_ID,null);
+        iUserId = this.getActivity().getIntent().getStringExtra(Constants.MY_USER_ID);
 
         mStartFromBeginning = (Button)view.findViewById(R.id.home_start_from_beginning);
         mContinueWhereLeftOff = (Button)view.findViewById(R.id.home_continue_where_left_off);
