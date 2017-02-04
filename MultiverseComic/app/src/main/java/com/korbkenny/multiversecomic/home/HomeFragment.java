@@ -13,6 +13,7 @@ import android.widget.Button;
 import com.google.firebase.database.FirebaseDatabase;
 import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.GlobalPageActivity;
+import com.korbkenny.multiversecomic.MultiverseActivity;
 import com.korbkenny.multiversecomic.R;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -54,6 +55,13 @@ public class HomeFragment extends Fragment {
                 intent.putExtra(Constants.NEXT_PAGE,iContinuePageId);
                 intent.putExtra(Constants.MY_USER_ID,iUserId);
                 startActivity(intent);
+            }
+        });
+
+        view.findViewById(R.id.home_art).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getActivity(), MultiverseActivity.class));
             }
         });
     }
