@@ -30,6 +30,8 @@ import com.korbkenny.multiversecomic.R;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import static android.R.attr.path;
+
 public class DrawingActivity extends AppCompatActivity {
     public static final String FILE_NAME = "mypage.png";
     private DrawView mDrawView;
@@ -109,66 +111,35 @@ public class DrawingActivity extends AppCompatActivity {
         mBitmapToSave = mDrawView.getDrawingCache();
 
 
-        new AsyncTask<Void,Void,String>(){
+        new AsyncTask<Void,Void,Void>(){
             @Override
             protected void onPreExecute() {
                 mLoadingBg.setVisibility(View.VISIBLE);
                 mLoadingCircle.setVisibility(View.VISIBLE);
                 mYellowText = mEditText.getText().toString();
-
             }
 
             @Override
-            protected String doInBackground(Void... voids) {
-                return saveImageToDisk(mBitmapToSave);
+            protected Void doInBackground(Void... voids) {
+                String path = saveImageToDisk(mBitmapToSave);
+
+                Uri image = Uri.fromFile(new File(path + "/" + FILE_NAME));
+
+                if(iGroupId==null) {
+                    setDStorageRef(Constants.PAGES);
+                } else {
+                    setDStorageRef(Constants.GROUPS);
+                }
+
+                UploadTask imageUploadTask = uploadDrawing(image);
+
+                imageUploadTask.addOnSuccessListener(
+                        DrawingActivity.this,
+                        createDrawingUploadSuccessListener());
+
+                return null;
             }
 
-            @Override
-            protected void onPostExecute(final String path) {
-                new AsyncTask<Void,Void,Void>(){
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        Uri image = Uri.fromFile(new File(path + "/" + FILE_NAME));
-                        if(iGroupId==null) {
-                            dStorageRef = FirebaseStorage.getInstance().getReference(Constants.PAGES).child(iPageId).child(FILE_NAME);
-                        } else {
-                            dStorageRef = FirebaseStorage.getInstance().getReference(Constants.GROUPS).child(iGroupId).child(iPageId).child(FILE_NAME);
-                        }
-                        dStorageRef.putFile(image).addOnSuccessListener(DrawingActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected void onPreExecute() {
-                                    }
-
-                                    @Override
-                                    protected Void doInBackground(Void... voids) {
-                                        if (taskSnapshot.getDownloadUrl() != null) {
-                                            dPageRef.child(Constants.TEXT).setValue(mYellowText);
-                                            dPageRef.child(Constants.IMAGE).setValue(taskSnapshot.getDownloadUrl().toString());
-                                            if(iGroupId==null) {
-                                                dPageRef.child(Constants.USER).setValue(iUserId);
-                                                DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mFromUser).child("pageUpdate");
-                                                updatedPageRef.setValue(iPageId);
-                                            } else {
-                                                dPageRef.child(Constants.IMAGE_USER).setValue(iUserId);
-                                            }
-                                        }
-                                        return null;
-                                    }
-
-                                    @Override
-                                    protected void onPostExecute(Void voidsa) {
-                                        finish();
-                                    }
-                                }.execute();
-                            }
-                        });
-                        return null;
-                    }
-                }.execute();
-            }
         }.execute();
 
     }
@@ -190,14 +161,10 @@ public class DrawingActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
@@ -218,14 +185,10 @@ public class DrawingActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
@@ -294,6 +257,47 @@ public class DrawingActivity extends AppCompatActivity {
             }
         }
         return directory.getAbsolutePath();
+    }
+
+    private void setDStorageRef(String refParent){
+        switch (refParent){
+            case Constants.PAGES:
+                dStorageRef = FirebaseStorage.getInstance().getReference(Constants.PAGES)
+                        .child(iPageId)
+                        .child(FILE_NAME);
+                break;
+            case Constants.GROUPS:
+                dStorageRef = FirebaseStorage.getInstance().getReference(Constants.GROUPS)
+                        .child(iGroupId)
+                        .child(iPageId)
+                        .child(FILE_NAME);
+                break;
+        }
+    }
+
+    private UploadTask uploadDrawing(Uri image){
+        return dStorageRef.putFile(image);
+    }
+
+    private OnSuccessListener<UploadTask.TaskSnapshot> createDrawingUploadSuccessListener(){
+        return new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
+
+                if (taskSnapshot.getDownloadUrl() != null) {
+
+                    dPageRef.child(Constants.TEXT).setValue(mYellowText);
+                    dPageRef.child(Constants.IMAGE).setValue(taskSnapshot.getDownloadUrl().toString());
+                    if (iGroupId == null) {
+                        dPageRef.child(Constants.USER).setValue(iUserId);
+                        DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mFromUser).child(Constants.PAGE_UPDATE);
+                        updatedPageRef.setValue(iPageId);
+                    } else {
+                        dPageRef.child(Constants.IMAGE_USER).setValue(iUserId);
+                    }
+                }
+            }
+        };
     }
 
 
