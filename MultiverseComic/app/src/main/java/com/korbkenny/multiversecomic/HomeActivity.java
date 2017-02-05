@@ -14,6 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.korbkenny.multiversecomic.groups.GroupsActivity;
+import com.korbkenny.multiversecomic.home.MainActivity;
 
 public class HomeActivity extends AppCompatActivity {
     public static String FIRST_PAGE_ID = "-KaAQza-n3z7al9Egl0N";
@@ -72,6 +73,16 @@ public class HomeActivity extends AppCompatActivity {
                 intent.putExtra("MyUserId",iUserId);
                 startActivity(intent);
                 finish();
+            }
+        });
+
+        mGroupButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+                intent.putExtra("MyUserId",iUserId);
+                startActivity(intent);
+                return false;
             }
         });
 

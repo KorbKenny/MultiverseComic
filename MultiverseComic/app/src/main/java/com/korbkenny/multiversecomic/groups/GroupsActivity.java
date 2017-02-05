@@ -144,6 +144,8 @@ public class GroupsActivity extends AppCompatActivity implements GroupsRecyclerA
         intent.putExtra("MyUserId",iUserId);
         intent.putExtra("GroupId",newGroupId);
         startActivity(intent);
+
+
     }
 
 

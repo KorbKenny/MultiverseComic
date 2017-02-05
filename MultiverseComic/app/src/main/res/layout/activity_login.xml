@@ -13,13 +13,45 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp">
 
-        <!--<EditText-->
-            <!--android:id="@+id/username_edit"-->
-            <!--android:layout_width="300dp"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:inputType="textEmailAddress"-->
-            <!--android:hint="Username"-->
-            <!--android:layout_centerHorizontal="true"/>-->
+        <EditText
+            android:id="@+id/username_or_email"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:maxLength="40"
+            android:hint="Email"
+            android:layout_centerHorizontal="true"
+            android:inputType="textNoSuggestions|textEmailAddress"/>
+
+        <EditText
+            android:id="@+id/log_in_password"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:inputType="textPassword"
+            android:layout_centerHorizontal="true"
+            android:hint="Password"
+            android:layout_below="@id/username_or_email"/>
+
+        <Button
+            android:id="@+id/log_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/log_in_password"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:text="Log In"/>
+
+
+        <EditText
+            android:id="@+id/username_edit"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:hint="Username"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone"/>
 
         <EditText
             android:id="@+id/sign_up_email"
@@ -27,7 +59,10 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:inputType="textEmailAddress"
+            android:layout_below="@id/username_edit"
+            android:visibility="gone"
             android:hint="Email"/>
+
         <EditText
             android:id="@+id/sign_up_password"
             android:layout_width="300dp"
@@ -35,7 +70,9 @@
             android:layout_below="@id/sign_up_email"
             android:layout_centerHorizontal="true"
             android:inputType="textPassword"
-            android:hint="Password"/>
+            android:hint="Password"
+            android:visibility="gone"/>
+
         <Button
             android:id="@+id/sign_up_button"
             android:layout_width="wrap_content"
@@ -44,16 +81,30 @@
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
             android:text="sign up"
-            android:layout_alignParentRight="true"/>
-        <Button
-            android:id="@+id/log_in_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/sign_up_password"
-            android:layout_toLeftOf="@id/sign_up_button"
-            android:layout_marginRight="16dp"
-            android:layout_marginTop="16dp"
-            android:text="Log In"/>
+            android:enabled="false"
+            android:layout_alignParentRight="true"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/text_to_sign_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+    <TextView
+        android:id="@+id/dont_have_account_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't have an account?"
+        android:layout_marginRight="8dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign Up"
+        android:textStyle="bold"
+        android:textColor="#0033aa"
+        android:layout_toRightOf="@id/dont_have_account_text"/>
 
     </RelativeLayout>
 

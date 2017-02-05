@@ -1,5 +1,6 @@
 package com.korbkenny.multiversecomic;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -7,8 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -16,15 +19,26 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.korbkenny.multiversecomic.home.MainActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private EditText mEditUsername, mEditEmail, mEditPassword;
+    private EditText mEditUsername, mEditEmail, mEditPassword, mEditLoginEmailUsername, mEditLoginPassword;
     private Button mSignUpButton, mLogInButton;
+    private List<String> mUsernameList;
+    private String mCreatingUsername;
+    private FirebaseDatabase db;
+    private DatabaseReference dUserRef;
+    private RelativeLayout mSignUpLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         createAuthListener();
+        getListOfUsernames();
         simpleSetup();
 
         //============================
@@ -42,7 +57,14 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mLogInButton.setEnabled(false);
                 mSignUpButton.setEnabled(false);
-                signUp(mEditEmail.getText().toString(),mEditPassword.getText().toString());
+                if (mUsernameList.contains(mEditUsername.getText().toString().toLowerCase())) {
+                    mEditUsername.setError("Name already taken");
+                    mSignUpButton.setEnabled(true);
+                } else {
+                    mEditUsername.setError(null);
+                    mCreatingUsername = mEditUsername.getText().toString();
+                    signUp(mEditEmail.getText().toString(), mEditPassword.getText().toString());
+                }
             }
         });
 
@@ -54,7 +76,64 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mLogInButton.setEnabled(false);
                 mSignUpButton.setEnabled(false);
-                logIn(mEditEmail.getText().toString(),mEditPassword.getText().toString());
+                logIn(mEditLoginEmailUsername.getText().toString(),mEditLoginPassword.getText().toString());
+            }
+        });
+
+        mSignUpLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSignUpLayout.setVisibility(View.GONE);
+                mLogInButton.setVisibility(View.GONE);
+                mEditLoginEmailUsername.setVisibility(View.GONE);
+                mEditLoginPassword.setVisibility(View.GONE);
+
+                mSignUpButton.setVisibility(View.VISIBLE);
+                mEditUsername.setVisibility(View.VISIBLE);
+                mEditUsername.requestFocus();
+                InputMethodManager inputMethodManager =
+                        (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.toggleSoftInputFromWindow(
+                        mEditUsername.getApplicationWindowToken(),
+                        InputMethodManager.SHOW_IMPLICIT, 0);
+                mEditPassword.setVisibility(View.VISIBLE);
+                mEditEmail.setVisibility(View.VISIBLE);
+
+            }
+        });
+    }
+
+    //===============================
+    //  Get all the usernames
+    //===============================
+    private void getListOfUsernames() {
+        mUsernameList = new ArrayList<>();
+        db = FirebaseDatabase.getInstance();
+        dUserRef = db.getReference("usernames");
+        dUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(final DataSnapshot dataSnapshot) {
+                new AsyncTask<Void,Void,Void>(){
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        if(dataSnapshot.getValue()!=null){
+                            for(DataSnapshot ds:dataSnapshot.getChildren()){
+                                mUsernameList.add(ds.getValue(String.class).toLowerCase());
+                            }
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        mSignUpButton.setEnabled(true);
+                    }
+                }.execute();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
     }
@@ -63,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
     //       Sign Up
     //============================
     private void signUp(String email, String password) {
-        if(!validateLoginForm()){
+        if(!validateSignInForm()){
             return;
         }
         mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -72,6 +151,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(!task.isSuccessful()){
                     mLogInButton.setEnabled(true);
                     mSignUpButton.setEnabled(true);
+                    mCreatingUsername = null;
                     Toast.makeText(LoginActivity.this, "Failed to sign up", Toast.LENGTH_SHORT).show();
                 } else {
                     final String userId = task.getResult().getUser().getUid();
@@ -81,6 +161,8 @@ public class LoginActivity extends AppCompatActivity {
                     new AsyncTask<Void,Void,Void>(){
                         @Override
                         protected Void doInBackground(Void... voids) {
+                            dUserRef.child(userId).setValue(mCreatingUsername);
+                            userRef.child("userName").setValue(mCreatingUsername);
                             userRef.child("userid").setValue(userId);
                             userRef.child("useremail").setValue(userEmail);
                             userRef.child("pageUpdate").setValue(GlobalPageActivity.DB_NULL);
@@ -96,7 +178,9 @@ public class LoginActivity extends AppCompatActivity {
     //       Log In
     //============================
     private void logIn(String email, String password) {
-        if(!validateLoginForm()){
+        if(!validateLogInForm()){
+            mLogInButton.setEnabled(true);
+            mSignUpButton.setEnabled(true);
             return;
         }
         mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -115,11 +199,17 @@ public class LoginActivity extends AppCompatActivity {
     //      Set up views
     //============================
     private void simpleSetup() {
-//        mEditUsername = (EditText)findViewById(R.id.username_edit);
+        mEditLoginEmailUsername = (EditText)findViewById(R.id.username_or_email);
+        mEditLoginPassword = (EditText)findViewById(R.id.log_in_password);
+
+        mEditUsername = (EditText)findViewById(R.id.username_edit);
         mEditEmail = (EditText)findViewById(R.id.sign_up_email);
         mEditPassword = (EditText)findViewById(R.id.sign_up_password);
+
         mLogInButton = (Button)findViewById(R.id.log_in_button);
         mSignUpButton = (Button)findViewById(R.id.sign_up_button);
+
+        mSignUpLayout = (RelativeLayout)findViewById(R.id.text_to_sign_up);
     }
 
     //============================
@@ -158,7 +248,7 @@ public class LoginActivity extends AppCompatActivity {
         return password.length() > 4;
     }
 
-    private boolean validateLoginForm() {
+    private boolean validateSignInForm() {
         boolean valid = true;
 
         String email = mEditEmail.getText().toString();
@@ -183,16 +273,46 @@ public class LoginActivity extends AppCompatActivity {
             mEditPassword.setError(null);
         }
 
-//        String username = mEditUsername.getText().toString();
-//        if(TextUtils.isEmpty(username)){
-//            mEditUsername.setError("Required.");
-//            valid = false;
-//        } else if (username.length() < 4){
-//            mEditUsername.setError("Too Short.");
-//            valid = false;
-//        } else {
-//            mEditUsername.setError(null);
-//        }
+        String username = mEditUsername.getText().toString();
+        if(TextUtils.isEmpty(username)){
+            mEditUsername.setError("Required.");
+            valid = false;
+        } else if (username.length() < 4){
+            mEditUsername.setError("Too Short.");
+            valid = false;
+        } else {
+            mEditUsername.setError(null);
+        }
+        mSignUpButton.setEnabled(true);
+        return valid;
+    }
+
+
+    private boolean validateLogInForm() {
+        boolean valid = true;
+
+        String email = mEditLoginEmailUsername.getText().toString();
+        if (TextUtils.isEmpty(email)) {
+            mEditLoginEmailUsername.setError("Required.");
+            valid = false;
+        } else if (!isEmailValid(email)){
+            mEditLoginEmailUsername.setError("Not a Valid Email.");
+            valid = false;
+        } else {
+            mEditLoginEmailUsername.setError(null);
+        }
+
+        String password = mEditLoginPassword.getText().toString();
+        if (TextUtils.isEmpty(password)) {
+            mEditLoginPassword.setError("Required.");
+            valid = false;
+        } else if (!isPasswordValid(password)) {
+            mEditLoginPassword.setError("Too Short.");
+            valid = false;
+        } else {
+            mEditLoginPassword.setError(null);
+        }
+
         return valid;
     }
 
