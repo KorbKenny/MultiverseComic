@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.R.attr.bitmap;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -36,8 +37,8 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
     private float mScaleFactor = 1.f;
     private Paint mPaint;
     private Canvas mCanvas;
-    public HashMap<GlobalPageObject, Bitmap> mPageBitmaps;
-    public List<GlobalPageObject> mPages;
+    public HashMap<MultiversePage, Bitmap> mPageBitmaps;
+    public List<MultiversePage> mPages;
 
 
     public MultiverseView(Context context, AttributeSet attrs) {
@@ -77,17 +78,35 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
         getHolder().unlockCanvasAndPost(mCanvas);
     }
 
-    private void drawImages(){
-        for (int i=0; i<mPageBitmaps.size(); i++){
-            Bitmap bitmap = mPageBitmaps.get(mPages.get(i));
+    private void drawImages() {
+        Log.d(TAG, "drawImages: "+mPageBitmaps.size());
+        if (!mPageBitmaps.isEmpty()) {
+            Bitmap bitmap = mPageBitmaps.get(mPages.get(0));
+            Bitmap bitmapRow2Right = mPageBitmaps.get(mPages.get(1));
+            Bitmap bitmapRow2Left = mPageBitmaps.get(mPages.get(2));
+            Log.d(TAG, "PAGE RIGHT "+mPages.get(0).getPageRight());
+            Log.d(TAG, "RIGHT BITMAP"+bitmapRow2Right);
+            Log.d(TAG, "PAGE LEFT "+mPages.get(0).getPageLeft());
+            Log.d(TAG, "LEFT BITMAP"+bitmapRow2Left);
             if (bitmap != null) {
-                if (i == 0) {
-                    mCanvas.drawBitmap(bitmap, 0, i * 100, mPaint);
-                } else {
-                    int top = bitmap.getHeight() * i;
-                    mCanvas.drawBitmap(bitmap, 0, top, mPaint);
-                }
+                mCanvas.drawBitmap(bitmap, (getWidth() / 2) - (bitmap.getWidth() / 2), 0, mPaint);
             }
+
+            if (bitmapRow2Right != null) {
+                Log.d(TAG, "drawImages: RIGHT");
+                //draw second row right
+                mCanvas.drawBitmap(bitmapRow2Right, (getWidth() / 2), bitmapRow2Right.getHeight(), mPaint);
+            }
+
+            if (bitmapRow2Left != null) {
+                Log.d(TAG, "drawImages: LEFT");
+                //draw second row left
+                mCanvas.drawBitmap(bitmapRow2Left, (getWidth() / 2) - (bitmapRow2Left.getWidth()),
+                        bitmapRow2Left.getHeight(), mPaint);
+            }
+
+
+            //recurse to right and left until page == null
         }
     }
 
@@ -134,6 +153,13 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
                     fetchPages(dbRef);
                     return null;
                 }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    beginDrawing();
+                    drawImages();
+                    finishDrawing();
+                }
             }.execute();
         }
 
@@ -142,13 +168,16 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(dataSnapshot!=null){
-                        final GlobalPageObject page = dataSnapshot.getValue(GlobalPageObject.class);
+                        final MultiversePage page = dataSnapshot.getValue(MultiversePage.class);
 
                         if (page != null) {
 
+                            assignPageRightAndLeft(page);
+
                             mPages.add(page);
 
-                            Picasso.with(getContext()).load(page.getImage()).placeholder(R.drawable.drawplaceholder).into(new com.squareup.picasso.Target() {
+                            Picasso.with(getContext()).load(page.getImage())
+                                    .into(new com.squareup.picasso.Target() {
                                 @Override
                                 public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                                     mPageBitmaps.put(page, bitmap);
@@ -184,5 +213,35 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
             });
         }
 
+        private void assignPageRightAndLeft(final MultiversePage page){
+            if (!page.getNextRight().equals(Constants.DB_NULL)) {
+                db.getReference(Constants.GLOBAL).child(page.getNextRight()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        MultiversePage pageRight = dataSnapshot.getValue(MultiversePage.class);
+                        page.setPageRight(pageRight);
+                        Log.d(TAG, "onDataChange: RIGHT ASSIGNED");
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
+
+            if (!page.getNextLeft().equals(Constants.DB_NULL)) {
+                db.getReference(Constants.GLOBAL).child(page.getNextLeft()).addValueEventListener(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        MultiversePage pageLeft = dataSnapshot.getValue(MultiversePage.class);
+                        page.setPageLeft(pageLeft);
+                        Log.d(TAG, "onDataChange: LEFT ASSIGNED");
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
+        }
     }
 }
