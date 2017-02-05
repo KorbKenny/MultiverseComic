@@ -57,9 +57,6 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
         new PageManager();
         mPaint = new Paint();
-        beginDrawing();
-        drawImages();
-        finishDrawing();
     }
 
     @Override
@@ -95,14 +92,20 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
             if (bitmapRow2Right != null) {
                 Log.d(TAG, "drawImages: RIGHT");
                 //draw second row right
-                mCanvas.drawBitmap(bitmapRow2Right, (getWidth() / 2), bitmapRow2Right.getHeight(), mPaint);
+                int width = bitmapRow2Right.getWidth()/2;
+                int height = bitmapRow2Right.getHeight()/2;
+                bitmapRow2Right = Bitmap.createScaledBitmap(bitmapRow2Right, width, height, true);
+                mCanvas.drawBitmap(bitmapRow2Right, (getWidth() / 2), bitmap.getHeight(), mPaint);
             }
 
             if (bitmapRow2Left != null) {
                 Log.d(TAG, "drawImages: LEFT");
                 //draw second row left
+                int width = bitmapRow2Left.getWidth()/2;
+                int height = bitmapRow2Left.getHeight()/2;
+                bitmapRow2Left = Bitmap.createScaledBitmap(bitmapRow2Left, width, height, true);
                 mCanvas.drawBitmap(bitmapRow2Left, (getWidth() / 2) - (bitmapRow2Left.getWidth()),
-                        bitmapRow2Left.getHeight(), mPaint);
+                        bitmap.getHeight(), mPaint);
             }
 
 
@@ -156,9 +159,7 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
 
                 @Override
                 protected void onPostExecute(Void aVoid) {
-                    beginDrawing();
-                    drawImages();
-                    finishDrawing();
+
                 }
             }.execute();
         }
