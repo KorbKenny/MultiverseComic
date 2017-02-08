@@ -24,10 +24,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
+
+import static android.R.attr.path;
 
 public class DrawingActivity extends AppCompatActivity {
     public static final String FILE_NAME = "mypage.png";
@@ -108,66 +111,35 @@ public class DrawingActivity extends AppCompatActivity {
         mBitmapToSave = mDrawView.getDrawingCache();
 
 
-        new AsyncTask<Void,Void,String>(){
+        new AsyncTask<Void,Void,Void>(){
             @Override
             protected void onPreExecute() {
                 mLoadingBg.setVisibility(View.VISIBLE);
                 mLoadingCircle.setVisibility(View.VISIBLE);
                 mYellowText = mEditText.getText().toString();
-
             }
 
             @Override
-            protected String doInBackground(Void... voids) {
-                return saveImageToDisk(mBitmapToSave);
+            protected Void doInBackground(Void... voids) {
+                String path = saveImageToDisk(mBitmapToSave);
+
+                Uri image = Uri.fromFile(new File(path + "/" + FILE_NAME));
+
+                if(iGroupId==null) {
+                    setDStorageRef(Constants.PAGES);
+                } else {
+                    setDStorageRef(Constants.GROUPS);
+                }
+
+                UploadTask imageUploadTask = uploadDrawing(image);
+
+                imageUploadTask.addOnSuccessListener(
+                        DrawingActivity.this,
+                        createDrawingUploadSuccessListener());
+
+                return null;
             }
 
-            @Override
-            protected void onPostExecute(final String path) {
-                new AsyncTask<Void,Void,Void>(){
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        Uri image = Uri.fromFile(new File(path + "/" + FILE_NAME));
-                        if(iGroupId==null) {
-                            dStorageRef = FirebaseStorage.getInstance().getReference("Pages").child(iPageId).child(FILE_NAME);
-                        } else {
-                            dStorageRef = FirebaseStorage.getInstance().getReference("Groups").child(iGroupId).child(iPageId).child(FILE_NAME);
-                        }
-                        dStorageRef.putFile(image).addOnSuccessListener(DrawingActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
-                                new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected void onPreExecute() {
-                                    }
-
-                                    @Override
-                                    protected Void doInBackground(Void... voids) {
-                                        if (taskSnapshot.getDownloadUrl() != null) {
-                                            dPageRef.child("text").setValue(mYellowText);
-                                            dPageRef.child("image").setValue(taskSnapshot.getDownloadUrl().toString());
-                                            if(iGroupId==null) {
-                                                dPageRef.child("user").setValue(iUserId);
-                                                DatabaseReference updatedPageRef = db.getReference("Users").child(mFromUser).child("pageUpdate");
-                                                updatedPageRef.setValue(iPageId);
-                                            } else {
-                                                dPageRef.child("imageUser").setValue(iUserId);
-                                            }
-                                        }
-                                        return null;
-                                    }
-
-                                    @Override
-                                    protected void onPostExecute(Void voidsa) {
-                                        finish();
-                                    }
-                                }.execute();
-                            }
-                        });
-                        return null;
-                    }
-                }.execute();
-            }
         }.execute();
 
     }
@@ -189,14 +161,10 @@ public class DrawingActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
@@ -217,14 +185,10 @@ public class DrawingActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
@@ -232,18 +196,18 @@ public class DrawingActivity extends AppCompatActivity {
     //      Simple Setup
     //=================================
     private void simpleSetup() {
-        iPageId = getIntent().getStringExtra("PageId");
-        iUserId = getIntent().getStringExtra("MyUserId");
-        iGroupId = getIntent().getStringExtra("GroupId");
-        iFromPageId = getIntent().getStringExtra("FromPageId");
+        iPageId = getIntent().getStringExtra(Constants.PAGE_ID);
+        iUserId = getIntent().getStringExtra(Constants.MY_USER_ID);
+        iGroupId = getIntent().getStringExtra(Constants.GROUP_ID);
+        iFromPageId = getIntent().getStringExtra(Constants.FROM_PAGE_ID);
 
-        mFromUser = getIntent().getStringExtra("FromUser");
+        mFromUser = getIntent().getStringExtra(Constants.FROM_USER);
 
         db = FirebaseDatabase.getInstance();
         if(iGroupId==null) {
-            dPageRef = db.getReference("Global").child(iPageId);
+            dPageRef = db.getReference(Constants.GLOBAL).child(iPageId);
         } else {
-            dPageRef = db.getReference("Groups").child(iGroupId).child(iPageId);
+            dPageRef = db.getReference(Constants.GROUPS).child(iGroupId).child(iPageId);
         }
 
         mDrawView = (DrawView) findViewById(R.id.draw_view);
@@ -295,6 +259,47 @@ public class DrawingActivity extends AppCompatActivity {
         return directory.getAbsolutePath();
     }
 
+    private void setDStorageRef(String refParent){
+        switch (refParent){
+            case Constants.PAGES:
+                dStorageRef = FirebaseStorage.getInstance().getReference(Constants.PAGES)
+                        .child(iPageId)
+                        .child(FILE_NAME);
+                break;
+            case Constants.GROUPS:
+                dStorageRef = FirebaseStorage.getInstance().getReference(Constants.GROUPS)
+                        .child(iGroupId)
+                        .child(iPageId)
+                        .child(FILE_NAME);
+                break;
+        }
+    }
+
+    private UploadTask uploadDrawing(Uri image){
+        return dStorageRef.putFile(image);
+    }
+
+    private OnSuccessListener<UploadTask.TaskSnapshot> createDrawingUploadSuccessListener(){
+        return new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
+
+                if (taskSnapshot.getDownloadUrl() != null) {
+
+                    dPageRef.child(Constants.TEXT).setValue(mYellowText);
+                    dPageRef.child(Constants.IMAGE).setValue(taskSnapshot.getDownloadUrl().toString());
+                    if (iGroupId == null) {
+                        dPageRef.child(Constants.USER).setValue(iUserId);
+                        DatabaseReference updatedPageRef = db.getReference(Constants.USERS).child(mFromUser).child(Constants.PAGE_UPDATE);
+                        updatedPageRef.setValue(iPageId);
+                    } else {
+                        dPageRef.child(Constants.IMAGE_USER).setValue(iUserId);
+                    }
+                }
+            }
+        };
+    }
+
 
     //=================================
     //  Change if BeingWorkedOn
@@ -302,13 +307,13 @@ public class DrawingActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        dPageRef.child("beingWorkedOn").setValue("yes");
+        dPageRef.child(Constants.BEING_WORKED_ON).setValue(Constants.BEING_WORKED_ON_YES);
         super.onResume();
     }
 
     @Override
     protected void onDestroy() {
-        dPageRef.child("beingWorkedOn").setValue("no");
+        dPageRef.child(Constants.BEING_WORKED_ON).setValue(Constants.BEING_WORKED_ON_NO);
         super.onDestroy();
     }
 }

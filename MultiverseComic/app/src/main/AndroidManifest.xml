@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.korbkenny.multiversecomic">
+<manifest package="com.korbkenny.multiversecomic"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -40,6 +40,8 @@
         <activity android:name=".groups.GroupCoverActivity">
         </activity>
         <activity android:name=".home.MainActivity">
+        </activity>
+        <activity android:name=".MultiverseActivity">
         </activity>
     </application>
 

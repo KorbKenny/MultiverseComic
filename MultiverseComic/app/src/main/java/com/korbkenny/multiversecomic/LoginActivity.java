@@ -157,15 +157,15 @@ public class LoginActivity extends AppCompatActivity {
                     final String userId = task.getResult().getUser().getUid();
                     final String userEmail = task.getResult().getUser().getEmail();
                     FirebaseDatabase db = FirebaseDatabase.getInstance();
-                    final DatabaseReference userRef = db.getReference("Users").child(userId);
+                    final DatabaseReference userRef = db.getReference(Constants.USERS).child(userId);
                     new AsyncTask<Void,Void,Void>(){
                         @Override
                         protected Void doInBackground(Void... voids) {
                             dUserRef.child(userId).setValue(mCreatingUsername);
-                            userRef.child("userName").setValue(mCreatingUsername);
-                            userRef.child("userid").setValue(userId);
-                            userRef.child("useremail").setValue(userEmail);
-                            userRef.child("pageUpdate").setValue(GlobalPageActivity.DB_NULL);
+                            userRef.child(Constants.USER_NAME).setValue(mCreatingUsername);
+                            userRef.child(Constants.USER_ID).setValue(userId);
+                            userRef.child(Constants.USER_EMAIL).setValue(userEmail);
+                            userRef.child(Constants.PAGE_UPDATE).setValue(Constants.DB_NULL);
                             return null;
                         }
                     }.execute();
@@ -223,11 +223,11 @@ public class LoginActivity extends AppCompatActivity {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user!=null){
                       // This is the new home page, with the viewpager and fragments and stuff
-//                    Intent intent = new Intent(LoginActivity.this,MainActivity.class);
+                    Intent intent = new Intent(LoginActivity.this,MainActivity.class);
 
                     //  Old home page.
-                    Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
-                    intent.putExtra("MyUserId",user.getUid());
+//                    Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
+                    intent.putExtra(Constants.MY_USER_ID,user.getUid());
                     startActivity(intent);
                     finish();
                 }

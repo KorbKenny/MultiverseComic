@@ -7,9 +7,9 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +24,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.korbkenny.multiversecomic.GlobalPageActivity;
+import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.HomeActivity;
 import com.korbkenny.multiversecomic.R;
 import com.korbkenny.multiversecomic.SquareImageView;
@@ -68,13 +68,13 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                     if(mThisPage.getFromUser().equals(iUserId)){
                         Toast.makeText(GroupSinglePageActivity.this, "Let someone else draw this one", Toast.LENGTH_SHORT).show();
                     } else {
-                        if(beingWorkedOn.equals("no")){
-                            dThisPageRef.child("beingWorkedOn").setValue("yes");
+                        if(beingWorkedOn.equals(Constants.BEING_WORKED_ON_NO)){
+                            dThisPageRef.child(Constants.BEING_WORKED_ON).setValue(Constants.BEING_WORKED_ON_YES);
                             Intent intent = new Intent(GroupSinglePageActivity.this,DrawingActivity.class);
-                            intent.putExtra("PageId", iPageId);
-                            intent.putExtra("MyUserId", iUserId);
-                            intent.putExtra("GroupId", iGroupId);
-                            intent.putExtra("FromUser", mThisPage.getFromUser());
+                            intent.putExtra(Constants.PAGE_ID, iPageId);
+                            intent.putExtra(Constants.MY_USER_ID, iUserId);
+                            intent.putExtra(Constants.GROUP_ID, iGroupId);
+                            intent.putExtra(Constants.FROM_USER, mThisPage.getFromUser());
                             startActivity(intent);
                         } else {
                             Toast.makeText(GroupSinglePageActivity.this, getResources().getString(R.string.already_working), Toast.LENGTH_SHORT).show();
@@ -89,9 +89,9 @@ public class GroupSinglePageActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(buttonIsEmpty){
                     Intent intent = new Intent(GroupSinglePageActivity.this,GroupSinglePageActivity.class);
-                    intent.putExtra("MyUserId",iUserId);
-                    intent.putExtra("GroupId",iGroupId);
-                    intent.putExtra("nextpage",mThisPage.getNext());
+                    intent.putExtra(Constants.MY_USER_ID,iUserId);
+                    intent.putExtra(Constants.GROUP_ID,iGroupId);
+                    intent.putExtra(Constants.NEXT_PAGE,mThisPage.getNext());
                     startActivity(intent);
                     finish();
                     return;
@@ -137,7 +137,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         dThisPageRef.child("buttonUser").setValue(iUserId);
-                        DatabaseReference nextRef = db.getReference("Groups").child(iGroupId);
+                        DatabaseReference nextRef = db.getReference(Constants.GROUPS).child(iGroupId);
                         iNextPageId = nextRef.push().getKey();
                         dThisPageRef.child("next").setValue(iNextPageId);
                         mThisPage.setNext(iNextPageId);
@@ -157,18 +157,18 @@ public class GroupSinglePageActivity extends AppCompatActivity {
     }
 
     private void createNextPage(String nextPageId) {
-        DatabaseReference nextPageRef = db.getReference("Groups").child(iGroupId).child(nextPageId);
+        DatabaseReference nextPageRef = db.getReference(Constants.GROUPS).child(iGroupId).child(nextPageId);
         GroupSinglePageObject ppo = new GroupSinglePageObject();
 
-        ppo.setBeingWorkedOn("no");
+        ppo.setBeingWorkedOn(Constants.BEING_WORKED_ON_NO);
         ppo.setFrom(iPageId);
         ppo.setFromUser(iUserId);
-        ppo.setImage(GlobalPageActivity.DB_NULL);
-        ppo.setText(GlobalPageActivity.DB_NULL);
-        ppo.setImageUser(GlobalPageActivity.DB_NULL);
-        ppo.setNext(GlobalPageActivity.DB_NULL);
-        ppo.setButtonText(GlobalPageActivity.DB_NULL);
-        ppo.setButtonUser(GlobalPageActivity.DB_NULL);
+        ppo.setImage(Constants.DB_NULL);
+        ppo.setText(Constants.DB_NULL);
+        ppo.setImageUser(Constants.DB_NULL);
+        ppo.setNext(Constants.DB_NULL);
+        ppo.setButtonText(Constants.DB_NULL);
+        ppo.setButtonUser(Constants.DB_NULL);
 
         nextPageRef.setValue(ppo);
     }
@@ -193,7 +193,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Image
                         //================================
-                        if(!mThisPage.getImage().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getImage().equals(Constants.DB_NULL)){
                             Picasso.with(GroupSinglePageActivity.this).load(mThisPage.getImage()).placeholder(R.drawable.loadingimage).into(mPageImage);
                         } else {
                             mPageImage.setImageResource(R.drawable.drawplaceholder);
@@ -202,7 +202,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Main Text
                         //================================
-                        if(!mThisPage.getText().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getText().equals(Constants.DB_NULL)){
                             mTitle.setText(mThisPage.getText());
                             mainIsEmpty = false;
                         } else {
@@ -213,7 +213,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                         //================================
                         //  Set Button Text
                         //================================
-                        if(!mThisPage.getButtonText().equals(GlobalPageActivity.DB_NULL)){
+                        if(!mThisPage.getButtonText().equals(Constants.DB_NULL)){
                             mNextText.setText(mThisPage.getButtonText());
                             mNextText.setTypeface(mNextText.getTypeface(), Typeface.BOLD);
                             mNextText.setTextColor(Color.BLACK);
@@ -228,7 +228,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
                             }
                         }
 
-                        SharedPreferences sp = getSharedPreferences(HomeActivity.SHARED_PREF,MODE_PRIVATE);
+                        SharedPreferences sp = getSharedPreferences(Constants.SHARED_PREF,MODE_PRIVATE);
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString(iGroupId,iPageId);
                         editor.commit();
@@ -244,9 +244,9 @@ public class GroupSinglePageActivity extends AppCompatActivity {
     }
 
     private void simpleSetup() {
-        iUserId = getIntent().getStringExtra("MyUserId");
-        iPageId = getIntent().getStringExtra("nextpage");
-        iGroupId = getIntent().getStringExtra("GroupId");
+        iUserId = getIntent().getStringExtra(Constants.MY_USER_ID);
+        iPageId = getIntent().getStringExtra(Constants.NEXT_PAGE);
+        iGroupId = getIntent().getStringExtra(Constants.GROUP_ID);
 
         mPageImage = (SquareImageView)findViewById(R.id.private_page_image);
         mTitle = (TextView) findViewById(R.id.private_page_text);
@@ -256,7 +256,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         mMainLayout = (RelativeLayout)findViewById(R.id.private_page_layout_top);
 
         db = FirebaseDatabase.getInstance();
-        dThisPageRef = db.getReference("Groups").child(iGroupId).child(iPageId);
+        dThisPageRef = db.getReference(Constants.GROUPS).child(iGroupId).child(iPageId);
     }
 
     public void toolbarSetup(){
@@ -305,7 +305,7 @@ public class GroupSinglePageActivity extends AppCompatActivity {
         //================================================
         //  Set if image+text is being worked on currently
         //================================================
-        dThisPageRef.child("beingWorkedOn").addValueEventListener(new ValueEventListener() {
+        dThisPageRef.child(Constants.BEING_WORKED_ON).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshot) {
                 new AsyncTask<Void, Void, String>() {

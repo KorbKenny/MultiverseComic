@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.korbkenny.multiversecomic.Constants;
 import com.korbkenny.multiversecomic.R;
 
 public class GroupCoverActivity extends AppCompatActivity {
@@ -60,8 +61,8 @@ public class GroupCoverActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(GroupCoverActivity.this,GroupSinglePageActivity.class);
-                intent.putExtra("MyUserId",iUserId);
-                intent.putExtra("nextpage",iGroupId);
+                intent.putExtra(Constants.MY_USER_ID,iUserId);
+                intent.putExtra(Constants.NEXT_PAGE,iGroupId);
                 startActivity(intent);
             }
         });
@@ -72,9 +73,9 @@ public class GroupCoverActivity extends AppCompatActivity {
     //          Simple Setup
     //=====================================
     private void simpleSetup() {
-        iUserId = getIntent().getStringExtra("MyUserId");
-        iGroupId = getIntent().getStringExtra("GroupId");
-        mGroupTitle = getIntent().getStringExtra("GroupTitle");
+        iUserId = getIntent().getStringExtra(Constants.MY_USER_ID);
+        iGroupId = getIntent().getStringExtra(Constants.GROUP_ID);
+        mGroupTitle = getIntent().getStringExtra(Constants.GROUP_TITLE);
 
         mWhoToInvite = (EditText)findViewById(R.id.who_to_invite_edit);
         mInviteButton = (Button)findViewById(R.id.add_member_button);
@@ -85,7 +86,7 @@ public class GroupCoverActivity extends AppCompatActivity {
         mTitleTextView.setText(mGroupTitle);
 
         db = FirebaseDatabase.getInstance();
-        dGroupRef = db.getReference("Groups").child(iGroupId).child("Name");
+        dGroupRef = db.getReference(Constants.GROUPS).child(iGroupId).child(Constants.NAME);
     }
 
     //=====================================
@@ -102,7 +103,7 @@ public class GroupCoverActivity extends AppCompatActivity {
                 EditText titleEdit = (EditText)view.findViewById(R.id.group_title_edit);
                 mTitleTextView.setText(titleEdit.getText().toString());
                 dGroupRef.setValue(titleEdit.getText().toString());
-                DatabaseReference usersGroupRef = db.getReference("Users").child(iUserId).child("Groups").child(iGroupId);
+                DatabaseReference usersGroupRef = db.getReference(Constants.USERS).child(iUserId).child("Groups").child(iGroupId);
                 usersGroupRef.setValue(titleEdit.getText().toString());
             }
         }).create()
@@ -126,7 +127,7 @@ public class GroupCoverActivity extends AppCompatActivity {
                         @Override
                         protected void onPostExecute(String s) {
                             mTitleTextView.setText(s);
-                            DatabaseReference myGroupRef = db.getReference("Users").child(iUserId).child("Groups").child(iGroupId);
+                            DatabaseReference myGroupRef = db.getReference(Constants.USERS).child(iUserId).child("Groups").child(iGroupId);
                             myGroupRef.setValue(s);
                         }
                     }.execute();
@@ -148,8 +149,8 @@ public class GroupCoverActivity extends AppCompatActivity {
         if(mWho.length() < 4){
             Toast.makeText(this, "Invite by Email!", Toast.LENGTH_SHORT).show();
         } else {
-            DatabaseReference userRef = db.getReference("Users");
-            userRef.orderByChild("useremail").equalTo(mWho).addListenerForSingleValueEvent(new ValueEventListener() {
+            DatabaseReference userRef = db.getReference(Constants.USERS);
+            userRef.orderByChild(Constants.USER_EMAIL).equalTo(mWho).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(final DataSnapshot dataSnapshot) {
                     if (dataSnapshot != null) {
