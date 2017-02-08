@@ -5,10 +5,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
@@ -23,18 +25,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static android.R.attr.bitmap;
-import static android.content.ContentValues.TAG;
+import static android.R.attr.action;
+import static android.R.attr.logo;
+import static android.R.attr.x;
+import static android.R.attr.y;
 
 /**
  * Created by Scott on 2/4/17.
  */
 
 public class MultiverseView extends SurfaceView implements SurfaceHolder.Callback{
-
+    private static final String TAG = "MultiverseView";
     private final static int NONE = 0;
+    public static final int PAN = 1;
+    public static final int SCALE = 2;
+    private int mode;
+    private float lastX;
+    private float lastY;
     private ScaleGestureDetector mScaleDetector;
+    private GestureDetector mScrollDetector;
     private float mScaleFactor = 1.f;
+    private RectF mCurrentViewport =
+            new RectF(0, 0, getWidth(), getHeight());
     private Paint mPaint;
     private Canvas mCanvas;
     public HashMap<MultiversePage, Bitmap> mPageBitmaps;
@@ -48,13 +60,49 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mScaleDetector.onTouchEvent(event);
+        int pointerCount = event.getPointerCount();
+        Log.d(TAG, "onTouchEvent: "+pointerCount);
+        int action = event.getAction();
+        switch (action){
+            case MotionEvent.ACTION_POINTER_DOWN:
+                setTouchLastXY(event);
+                break;
+            case MotionEvent.ACTION_DOWN:
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                setTouchLastXY(event);
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (pointerCount == PAN){
+                    mScrollDetector.onTouchEvent(event);
+                    setTouchLastXY(event);
+                } else if (pointerCount == SCALE){
+                    mScaleDetector.onTouchEvent(event);
+                }
+                break;
+
+        }
         return true;
+    }
+
+    private void setTouchLastXY(MotionEvent event){
+        lastX = event.getX();
+        lastY = event.getY();
+    }
+
+    private void panView(float distanceX, float distanceY){
+        beginDrawing();
+        drawImages();
+        mCanvas.translate(distanceX, distanceY);
+        finishDrawing();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
+        mScrollDetector = new GestureDetector(getContext(), new ScrollListener());
         new PageManager();
         mPaint = new Paint();
     }
@@ -76,21 +124,15 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void drawImages() {
-        Log.d(TAG, "drawImages: "+mPageBitmaps.size());
         if (!mPageBitmaps.isEmpty()) {
             Bitmap bitmap = mPageBitmaps.get(mPages.get(0));
             Bitmap bitmapRow2Right = mPageBitmaps.get(mPages.get(1));
             Bitmap bitmapRow2Left = mPageBitmaps.get(mPages.get(2));
-            Log.d(TAG, "PAGE RIGHT "+mPages.get(0).getPageRight());
-            Log.d(TAG, "RIGHT BITMAP"+bitmapRow2Right);
-            Log.d(TAG, "PAGE LEFT "+mPages.get(0).getPageLeft());
-            Log.d(TAG, "LEFT BITMAP"+bitmapRow2Left);
             if (bitmap != null) {
                 mCanvas.drawBitmap(bitmap, (getWidth() / 2) - (bitmap.getWidth() / 2), 0, mPaint);
             }
 
             if (bitmapRow2Right != null) {
-                Log.d(TAG, "drawImages: RIGHT");
                 //draw second row right
                 int width = bitmapRow2Right.getWidth()/2;
                 int height = bitmapRow2Right.getHeight()/2;
@@ -99,7 +141,6 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
             }
 
             if (bitmapRow2Left != null) {
-                Log.d(TAG, "drawImages: LEFT");
                 //draw second row left
                 int width = bitmapRow2Left.getWidth()/2;
                 int height = bitmapRow2Left.getHeight()/2;
@@ -133,6 +174,33 @@ public class MultiverseView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+    private class ScrollListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                // Scrolling uses math based on the viewport (as opposed to math using pixels).
+
+                // Pixel offset is the offset in screen pixels, while viewport offset is the
+                // offset within the current viewport.
+                float viewportOffsetX = distanceX * mCurrentViewport.width()
+                        / getWidth();
+                float viewportOffsetY = -distanceY * mCurrentViewport.height()
+                        / getHeight();
+                // Updates the viewport, refreshes the display.
+                setViewportBottomLeft(
+                        mCurrentViewport.left + viewportOffsetX,
+                        mCurrentViewport.bottom + viewportOffsetY);
+                return true;
+        }
+
+        private void setViewportBottomLeft(float x, float y) {
+            float curWidth = mCurrentViewport.width();
+            float curHeight = mCurrentViewport.height();
+            x = Math.max(getWidth(), Math.min(x, getWidth() - curWidth));
+            y = Math.max(getHeight() + curHeight, Math.min(y, getHeight()));
+
+            mCurrentViewport.set(x, y - curHeight, x + curWidth, y);
+        }
+    }
 
 
     private class PageManager {
