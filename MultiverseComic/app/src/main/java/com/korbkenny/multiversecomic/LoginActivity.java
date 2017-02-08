@@ -183,16 +183,16 @@ public class LoginActivity extends AppCompatActivity {
             mEditPassword.setError(null);
         }
 
-//        String username = mEditUsername.getText().toString();
-//        if(TextUtils.isEmpty(username)){
-//            mEditUsername.setError("Required.");
-//            valid = false;
-//        } else if (username.length() < 4){
-//            mEditUsername.setError("Too Short.");
-//            valid = false;
-//        } else {
-//            mEditUsername.setError(null);
-//        }
+        String username = mEditUsername.getText().toString();
+        if(TextUtils.isEmpty(username)){
+            mEditUsername.setError("Required.");
+            valid = false;
+        } else if (username.length() < 4){
+            mEditUsername.setError("Too Short.");
+            valid = false;
+        } else {
+            mEditUsername.setError(null);
+        }
         return valid;
     }
 
